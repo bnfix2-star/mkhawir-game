@@ -846,7 +846,20 @@ teamBPlayersEl.addEventListener('click', (e)=>{
     messagingSenderId: "218585352304",
     appId: "1:218585352304:web:bc0d6cb4cf727edc1a8cb5"
   };
-  // Initialize Firebase
+  
+const firebaseConfig = {
+  apiKey: "AIzaSyCtDSup_LvG7_JU7c18VhRH9jic3S0Qk74",
+  authDomain: "mkhawirgame.firebaseapp.com",
+  databaseURL: "https://mkhawirgame-default-rtdb.firebaseio.com",
+  projectId: "mkhawirgame",
+  storageBucket: "mkhawirgame.firebasestorage.app",
+  messagingSenderId: "218585352304",
+  appId: "1:218585352304:web:bc0d6cb4cf727edc1a8cb5",
+  measurementId: "G-P4787EY7KE"
+};
+console.log("Firebase config loaded. Database URL:", firebaseConfig.databaseURL);
+
+// Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   var db = firebase.database();
 
@@ -1082,6 +1095,38 @@ window.addEventListener('load', ()=>{
     }
   });
 });
+</script>
+
+
+<script>
+// store my role from welcome screen selection
+var myRole = null;
+
+// Modify startGame function to store role
+(function(){
+  const oldStartGame = window.startGame;
+  window.startGame = function(){
+    // Get role from dropdown
+    var roleSel = document.getElementById('roleSelect');
+    if(roleSel){
+      const val = roleSel.value;
+      if(val === 'manager'){ myRole = 'manager'; }
+      else { myRole = 'player'; }
+    }
+    if(typeof oldStartGame === 'function') oldStartGame();
+  };
+})();
+
+// Wrap writeStateToDB to include role if manager
+(function(){
+  const oldWriteStateToDB = window.writeStateToDB;
+  window.writeStateToDB = function(patch){
+    if(myRole === 'manager'){
+      patch.role = 'manager';
+    }
+    return oldWriteStateToDB(patch);
+  };
+})();
 </script>
 
 </body>
