@@ -102,6 +102,64 @@
 </style>
 </head>
 <body>
+
+<style>
+#welcomeScreen {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-direction: column;
+  z-index: 9999;
+}
+#welcomeScreen input, #welcomeScreen select, #welcomeScreen button {
+  margin: 5px;
+  padding: 10px;
+}
+</style>
+
+<div id="welcomeScreen">
+  <h1>مخاوير فيود</h1>
+  <input type="text" id="playerNameInput" placeholder="اكتب اسمك">
+  <select id="roleSelect">
+    <option value="playerA">لاعب - فريق A</option>
+    <option value="playerB">لاعب - فريق B</option>
+    <option value="manager">مدير اللعبة</option>
+  </select>
+  <button onclick="startGame()">ابدأ</button>
+</div>
+
+<script>
+var playerTeam = "";
+var playerName = "";
+var isManager = false;
+
+function startGame(){
+  playerName = document.getElementById('playerNameInput').value || "لاعب";
+  var role = document.getElementById('roleSelect').value;
+
+  if(role === "manager"){
+    isManager = true;
+    listenForBuzz();
+  } else {
+    isManager = false;
+    playerTeam = (role === "playerA") ? "A" : "B";
+    // Show buzz button for players
+    var buzzBtn = document.createElement("button");
+    buzzBtn.innerHTML = "🔔 اضغط الجرس";
+    buzzBtn.style.fontSize = "24px";
+    buzzBtn.onclick = function(){ sendBuzz(playerTeam, playerName); };
+    document.body.appendChild(buzzBtn);
+  }
+
+  document.getElementById('welcomeScreen').style.display = 'none';
+}
+</script>
+
   <canvas id="confetti"></canvas>
 
   <!-- شاشة الترحيب -->
@@ -772,5 +830,44 @@ teamBPlayersEl.addEventListener('click', (e)=>{
 */
 
 </script>
+
+<!-- Firebase App (the core Firebase SDK) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+  // Your web app's Firebase configuration
+  var firebaseConfig = {
+    apiKey: "AIzaSyCtDSup_LvG7_JU7c18VhRH9jic3S0Qk74",
+    authDomain: "mkhawirgame.firebaseapp.com",
+    databaseURL: "https://mkhawirgame-default-rtdb.firebaseio.com",
+    projectId: "mkhawirgame",
+    storageBucket: "mkhawirgame.firebasestorage.app",
+    messagingSenderId: "218585352304",
+    appId: "1:218585352304:web:bc0d6cb4cf727edc1a8cb5"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  var db = firebase.database();
+
+  // Example: Buzz button logic
+  function sendBuzz(team, player) {
+    db.ref("buzz").set({
+      team: team,
+      player: player,
+      time: Date.now()
+    });
+  }
+
+  function listenForBuzz() {
+    db.ref("buzz").on("value", function(snapshot) {
+      var data = snapshot.val();
+      if (data) {
+        alert(data.player + " من الفريق " + data.team + " ضغط الجرس!");
+      }
+    });
+  }
+</script>
+
 </body>
 </html>
