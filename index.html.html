@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>مخاوير فيود — نسخة عمل مع مدير وجرس</title>
+<style>
+  :root{
+    --card: rgba(3,8,16,0.75);
+    --muted:#9aa7b8;
+    --accent:#16a34a;
+    --glass: rgba(255,255,255,0.03);
+    --glass-2: rgba(255,255,255,0.02);
+    --bg-grad: linear-gradient(180deg, rgba(2,6,23,0.85) 0%, rgba(2,6,23,0.85) 60%);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background:
+      var(--bg-grad),
+      url('background.png') repeat;
+    background-size: cover;
+    color:#e6eef6;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    animation: moveBg 30s linear infinite;
+    transition: background-color .25s ease;
+    direction: rtl;
+  }
+  @keyframes moveBg { from { background-position: 0 0; } to { background-position: 100% 0; } }
+
+  .app{width:100%;max-width:1200px}
+  header{display:flex;gap:12px;align-items:center;margin-bottom:18px}
+  .title{font-size:22px;font-weight:800}
+  .subtitle{color:var(--muted);font-size:13px}
+
+  .layout{display:grid;grid-template-columns:380px 1fr;gap:18px}
+  .panel{background:var(--card);backdrop-filter: blur(6px);border-radius:14px;padding:16px;box-shadow:0 8px 30px rgba(2,6,23,0.7)}
+
+  .input, .select, .btn{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:inherit;margin-bottom:8px}
+  .row{display:flex;gap:8px;margin-bottom:10px}
+  .small{padding:8px;font-size:13px}
+  .teams{display:flex;gap:8px;margin-bottom:12px}
+  .team-card{flex:1;padding:12px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);text-align:center;position:relative}
+  .team-score{font-size:20px;font-weight:900;margin-top:6px}
+  .players-list{font-size:13px;color:var(--muted);margin-top:8px;text-align:center}
+
+  .questions{max-height:260px;overflow:auto;margin-top:8px}
+  .question-item{padding:10px;border-radius:10px;margin-bottom:8px;background:var(--glass-2);cursor:pointer;transition:transform .12s, background .12s}
+  .question-item:hover{transform:translateY(-3px);background:rgba(255,255,255,0.035)}
+
+  .board{display:flex;flex-direction:column;gap:12px}
+  .board-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .big-question{font-size:22px;font-weight:800}
+  .answers{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+  .answer{padding:12px;border-radius:12px;background:rgba(255,255,255,0.02);min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:all .18s;cursor:pointer}
+  .answer.revealed{background:linear-gradient(90deg, rgba(22,163,74,0.12), rgba(22,163,74,0.06));border:1px solid rgba(22,163,74,0.14);transform:scale(1.02)}
+  .answer .txt{font-size:16px}
+  .answer .pts{font-weight:900}
+
+  .controls-footer{display:flex;gap:8px}
+  .btn-action{background:linear-gradient(90deg,#0ea5a3,#06b6d4);border:none;color:#042024;padding:10px 14px;border-radius:10px}
+  .btn-red{background:linear-gradient(90deg,#ef4444,#f97316);border:none;color:white;padding:10px 14px;border-radius:10px}
+  .hint{font-size:13px;color:var(--muted);margin-top:6px}
+
+  #confetti { position:fixed; left:0;top:0;right:0;bottom:0; pointer-events:none; z-index:999; }
+  .hidden{display:none !important}
+
+  /* welcome overlay */
+  #welcomeOverlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:1000; background: rgba(0,0,0,0.55); padding:20px; }
+  .welcome-card { width:100%; max-width:820px; border-radius:18px; padding:26px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); box-shadow: 0 20px 60px rgba(0,0,0,0.6); text-align:center; color: #eaf6f1; }
+  .welcome-title{ font-size:48px; font-weight:900; margin:8px 0 6px 0; letter-spacing:1px; }
+  .welcome-sub{ color:var(--muted); margin-bottom:18px; font-size:15px }
+  .welcome-row{ display:flex; gap:10px; justify-content:center; margin-top:12px; flex-wrap:wrap }
+  .welcome-input{ padding:12px; border-radius:12px; border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02); color:inherit; min-width:240px }
+  .team-join-btn{ padding:12px 18px; border-radius:12px; border:none; cursor:pointer; font-weight:700 }
+  .btn-A{ background:linear-gradient(90deg,#ef4444,#f97316); color:white; }
+  .btn-B{ background:linear-gradient(90deg,#0ea5a3,#06b6d4); color:#042024; }
+  .btn-mgr{ background:linear-gradient(90deg,#8257e5,#5b21b6); color:white; }
+
+  .players-inline{ display:flex; gap:8px; justify-content:center; margin-top:8px; flex-wrap:wrap }
+  .player-pill{ background:rgba(255,255,255,0.03); padding:6px 10px; border-radius:999px; font-size:13px; color:var(--muted) }
+
+  /* bell */
+  #bellContainer { display:flex; align-items:center; justify-content:center; gap:12px; margin:12px 0; }
+  #bellBtn { padding:12px 20px; border-radius:999px; border:none; font-weight:800; cursor:pointer; box-shadow:0 6px 18px rgba(0,0,0,0.5); }
+  #bellBtn.player { background:linear-gradient(90deg,#f59e0b,#f97316); color:#042024; }
+  #bellBtn.disabled { opacity:0.45; cursor:not-allowed; }
+
+  /* manager buzz queue */
+  .buzz-queue { margin-top:12px; background:rgba(255,255,255,0.02); padding:8px; border-radius:10px; font-size:13px; color:var(--muted); max-height:140px; overflow:auto; }
+
+  @media (max-width:920px){
+    .layout{grid-template-columns:1fr;}.board{order:2}.panel{padding:12px}
+    .answers{grid-template-columns:1fr}
+    .welcome-title{font-size:36px}
+  }
+</style>
+</head>
+<body>
+  <canvas id="confetti"></canvas>
+
+  <!-- شاشة الترحيب -->
+  <div id="welcomeOverlay" role="dialog" aria-modal="true">
+    <div class="welcome-card" role="document">
+      <div style="display:flex;align-items:center;justify-content:center;flex-direction:column">
+        <div class="welcome-title">مخاوير فيود</div>
+        <div class="welcome-sub">اكتب اسمك ثم اختر دورك: مدير اللعبة أو لاعب (A أو B). المدير له كل الصلاحيات. اللاعب له زر الجرس فقط.</div>
+
+        <div class="welcome-row">
+          <input id="playerNameInput" class="welcome-input" placeholder="اكتب اسمك هنا..." maxlength="24" />
+        </div>
+
+        <div class="welcome-row" style="margin-top:10px">
+          <button id="beManager" class="team-join-btn btn-mgr">أكون مدير اللعبة</button>
+          <button id="joinA" class="team-join-btn btn-A">انضم للفريق A</button>
+          <button id="joinB" class="team-join-btn btn-B">انضم للفريق B</button>
+        </div>
+
+        <div style="margin-top:10px;color:var(--muted);font-size:13px">ملاحظة: هذه النسخة تعمل محليًا — إن أردت تزامن بين الأجهزة أقدر أربطها بـ Firebase بعد ما تجرب.</div>
+
+        <div class="players-inline" style="margin-top:14px">
+          <div style="text-align:center;min-width:140px">
+            <div style="font-weight:800">الفريق A</div>
+            <div id="previewA" class="player-pill" style="margin-top:6px">فارغ</div>
+            <div style="color:var(--muted);font-size:12px;margin-top:6px" id="previewACount">0 / 3</div>
+          </div>
+          <div style="width:18px"></div>
+          <div style="text-align:center;min-width:140px">
+            <div style="font-weight:800">الفريق B</div>
+            <div id="previewB" class="player-pill" style="margin-top:6px">فارغ</div>
+            <div style="color:var(--muted);font-size:12px;margin-top:6px" id="previewBCount">0 / 2</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="app" role="application" aria-label="مخاوير فيود — لوحة اللعبة">
+    <header>
+      <div>
+        <div class="title">مخاوير فيود — إصدار الويب</div>
+        <div class="subtitle">المدير يتحكم. اللاعبون لديهم زر جرس فقط.</div>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside class="panel controls" aria-label="لوحة التحكم">
+        <h3>إدارة اللعبة</h3>
+
+        <div class="row">
+          <input id="teamAName" class="input" placeholder="اسم الفريق أ" value="الفريق الأحمر" />
+          <input id="teamBName" class="input" placeholder="اسم الفريق ب" value="الفريق الأزرق" />
+        </div>
+
+        <div class="teams">
+          <div class="team-card">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div id="teamADisplay" style="font-weight:800">الفريق الأحمر</div>
+              <div style="font-size:13px;color:var(--muted)">A (3)</div>
+            </div>
+            <div class="team-score" id="teamAScore">0</div>
+            <div class="players-list" id="teamAPlayers">لاعبون: —</div>
+          </div>
+
+          <!-- bell in middle -->
+          <div style="display:flex;align-items:center;justify-content:center;flex-direction:column;">
+            <div id="bellContainer">
+              <button id="bellBtn" class="hidden">🔔 جرس</button>
+            </div>
+
+            <!-- manager sees queue -->
+            <div id="mgrBuzzArea" class="buzz-queue hidden">
+              <div style="font-weight:800;margin-bottom:6px">تنبيهات الجرس (طلبات الإجابة)</div>
+              <div id="buzzList">لا أحد حتى الآن.</div>
+            </div>
+          </div>
+
+          <div class="team-card">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <div id="teamBDisplay" style="font-weight:800">الفريق الأزرق</div>
+              <div style="font-size:13px;color:var(--muted)">B (2)</div>
+            </div>
+            <div class="team-score" id="teamBScore">0</div>
+            <div class="players-list" id="teamBPlayers">لاعبون: —</div>
+          </div>
+        </div>
+
+        <div id="mgrControls">
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <button class="btn small btn-action" id="newRound">جولة جديدة</button>
+            <button class="btn small" id="resetScores">إعادة النقاط</button>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
+            <div style="font-size:13px;color:var(--muted)">دور الإجابة الآن:</div>
+            <select id="turnSelector" class="input" style="max-width:160px;padding:8px">
+              <option value="A">الفريق A</option>
+              <option value="B">الفريق B</option>
+            </select>
+          </div>
+
+          <h3>الأسئلة (قائمة)</h3>
+          <div class="questions" id="questionsList" aria-live="polite"></div>
+
+          <h3>أضف سؤال جديد</h3>
+          <input id="qText" class="input" placeholder="اكتب السؤال هنا..." />
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <input id="ansText" class="input" placeholder="الصيغة: إجابة|نقاط, إجابة2|نقاط2 ..." />
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button id="addQ" class="btn small">أضف السؤال</button>
+            <button id="importSample" class="btn small">تحميل أمثلة</button>
+          </div>
+
+          <div class="hint">مثال: تفاح|35, موز|28, برتقال|18</div>
+
+          <div style="height:12px"></div>
+          <h3>أدوات الجولة</h3>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <button class="btn small" id="revealNext">كشف التالي</button>
+            <button class="btn small" id="flipAll">كشف الكل</button>
+          </div>
+
+          <div class="controls-footer">
+            <button class="btn small btn-action" id="awardA">أضف نقاط للفريق A</button>
+            <button class="btn small btn-action" id="awardB">أضف نقاط للفريق B</button>
+            <button class="btn small btn-red" id="strike">خطأ / سترايك</button>
+          </div>
+
+          <div style="margin-top:8px">
+            <button id="stealSuccess" class="btn small btn-action hidden">نجحوا في السرقة (منح النقاط)</button>
+          </div>
+
+          <footer style="margin-top:10px">ضع صورة الخلفية باسم <code>background.png</code> وملفات الصوت في نفس المجلد.</footer>
+
+          <div style="margin-top:8px">
+            <button id="exportBtn" class="btn small">تصدير الأسئلة (JSON)</button>
+            <label class="btn small" style="margin-right:8px">استيراد JSON
+              <input id="importFile" type="file" accept=".json" style="display:none">
+            </label>
+          </div>
+        </div>
+
+        <!-- user controls (hidden to players) -->
+        <div id="playerOnlyNote" class="hidden" style="margin-top:12px;color:var(--muted);font-size:13px">
+          أنت في دور لاعب — التحكم محجوب. استخدم زر الجرس لطلب الإجابة.
+        </div>
+
+      </aside>
+
+      <main class="panel board" aria-label="لوحة العرض">
+        <div class="board-top">
+          <div>
+            <div class="big-question" id="qDisplay">اضغط على سؤال من الجهة اليسرى لبدء الجولة</div>
+            <div class="subtitle" id="qMeta">عدد الإجابات: —</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-size:13px;color:var(--muted)">حالة الجولة</div>
+            <div id="roundState" style="font-weight:800; font-size:18px">جاهز</div>
+            <div id="currentResponder" style="margin-top:6px;color:var(--muted);font-size:13px">لا أحد مجاز حالياً</div>
+          </div>
+        </div>
+
+        <div class="answers" id="answersGrid" aria-live="polite">
+          <!-- بطاقات الإجابة تظهر هنا -->
+        </div>
+
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
+          <button class="btn btn-action" id="prevReveal">السابق</button>
+          <button class="btn" id="clearReveal">مسح كشف</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+<script>
+/* =======================================================
+   نسخة محسّنة: مدير + لاعب + جرس (محلي). جاهز للربط Firebase
+   ======================================================= */
+
+/* -------------------------
+   بيانات الفرق و اللاعبين
+   ------------------------- */
+const team = {
+  A: { name: 'الفريق الأحمر', score: 0, players: [], maxPlayers: 3 },
+  B: { name: 'الفريق الأزرق', score: 0, players: [], maxPlayers: 2 }
+};
+
+/* حالة اللعبة */
+let questions = [];
+let current = { index: -1, revealed: [], strikes: 0, stealMode: false, stealBy: null, boardPoints: 0 };
+let currentAnsweringTeam = 'A';
+
+/* صلاحية المستخدم الحالية */
+let my = {
+  name: null,
+  role: null, // 'manager' | 'playerA' | 'playerB'
+  teamKey: null // 'A'|'B' or null for manager
+};
+
+/* قائمة من ضغطوا الجرس (محلياً) */
+let buzzQueue = []; // [{name, team, time}]
+
+/* عناصر DOM */
+const qListEl = document.getElementById('questionsList');
+const qDisplay = document.getElementById('qDisplay');
+const qMeta = document.getElementById('qMeta');
+const answersGrid = document.getElementById('answersGrid');
+const roundStateEl = document.getElementById('roundState');
+const currentResponderEl = document.getElementById('currentResponder');
+
+const teamADisplay = document.getElementById('teamADisplay');
+const teamBDisplay = document.getElementById('teamBDisplay');
+const teamAScoreEl = document.getElementById('teamAScore');
+const teamBScoreEl = document.getElementById('teamBScore');
+const teamAPlayersEl = document.getElementById('teamAPlayers');
+const teamBPlayersEl = document.getElementById('teamBPlayers');
+
+const welcomeOverlay = document.getElementById('welcomeOverlay');
+const playerNameInput = document.getElementById('playerNameInput');
+const joinAButton = document.getElementById('joinA');
+const joinBButton = document.getElementById('joinB');
+const beManagerBtn = document.getElementById('beManager');
+const previewA = document.getElementById('previewA');
+const previewB = document.getElementById('previewB');
+const previewACount = document.getElementById('previewACount');
+const previewBCount = document.getElementById('previewBCount');
+
+const bellBtn = document.getElementById('bellBtn');
+const mgrBuzzArea = document.getElementById('mgrBuzzArea');
+const buzzListEl = document.getElementById('buzzList');
+
+const mgrControls = document.getElementById('mgrControls');
+const playerOnlyNote = document.getElementById('playerOnlyNote');
+
+/* الأصوات (اختياري) */
+const correctSound = new Audio('correct.mp3');
+const wrongSound = new Audio('wrong.mp3');
+const applauseSound = new Audio('applause.mp3');
+const bgMusic = new Audio('bg.mp3');
+bgMusic.loop = true; bgMusic.volume = 0.28;
+document.addEventListener('click', ()=> { if(bgMusic.paused) bgMusic.play().catch(()=>{}); });
+
+function tryPlay(sound){ sound.currentTime = 0; sound.play().catch(()=>{}); }
+
+/* -------------------------
+   الدوال المساعدة لإدارة اللاعبين
+   ------------------------- */
+function saveLocalState(){
+  // نحفظ الأسماء والدور في localStorage حتى تبقى بعد إعادة تحميل
+  localStorage.setItem('mkhawir_players', JSON.stringify({A: team.A.players, B: team.B.players}));
+  localStorage.setItem('mkhawir_me', JSON.stringify(my));
+}
+function loadLocalState(){
+  try{
+    const pl = JSON.parse(localStorage.getItem('mkhawir_players') || '{}');
+    if(pl.A && Array.isArray(pl.A)) team.A.players = pl.A;
+    if(pl.B && Array.isArray(pl.B)) team.B.players = pl.B;
+    const mm = JSON.parse(localStorage.getItem('mkhawir_me') || 'null');
+    if(mm && mm.name && mm.role) my = mm;
+  }catch(e){}
+}
+function addPlayerToTeam(teamKey, playerName){
+  const t = team[teamKey];
+  if(!playerName || !playerName.trim()) { alert('اكتب اسم صحيح'); return false; }
+  if(t.players.includes(playerName)) { alert('الاسم موجود بالفعل'); return false; }
+  if(t.players.length >= t.maxPlayers) { alert(`الفريق ممتلئ. الحد: ${t.maxPlayers}`); return false; }
+  t.players.push(playerName);
+  updatePlayersDisplay();
+  saveLocalState();
+  return true;
+}
+function removePlayerFromTeam(teamKey, playerName){
+  const t = team[teamKey];
+  t.players = t.players.filter(p => p !== playerName);
+  updatePlayersDisplay();
+  saveLocalState();
+}
+function updatePlayersDisplay(){
+  teamAPlayersEl.textContent = 'لاعبون: ' + (team.A.players.length ? team.A.players.join(' ، ') : '—');
+  teamBPlayersEl.textContent = 'لاعبون: ' + (team.B.players.length ? team.B.players.join(' ، ') : '—');
+  teamAScoreEl.textContent = team.A.score;
+  teamBScoreEl.textContent = team.B.score;
+  previewA.textContent = team.A.players.length ? team.A.players.join(' ، ') : 'فارغ';
+  previewB.textContent = team.B.players.length ? team.B.players.join(' ، ') : 'فارغ';
+  previewACount.textContent = `${team.A.players.length} / ${team.A.maxPlayers}`;
+  previewBCount.textContent = `${team.B.players.length} / ${team.B.maxPlayers}`;
+}
+
+/* -------------------------
+   إعداد الواجهة حسب الدور (manager أو player)
+   ------------------------- */
+function setUIForRole(){
+  // افتراضياً نخفي كل شيء متعلق بالمدير أو اللاعب
+  bellBtn.classList.add('hidden');
+  mgrBuzzArea.classList.add('hidden');
+  mgrControls.classList.add('hidden');
+  playerOnlyNote.classList.add('hidden');
+
+  if(my.role === 'manager'){
+    // مدير: يظهر كل أدوات الإدارة + لوحة تنبيهات الجرس
+    welcomeOverlay.classList.add('hidden');
+    mgrControls.classList.remove('hidden');
+    mgrBuzzArea.classList.remove('hidden');
+    bellBtn.classList.add('hidden'); // المدير لا يحتاج جرس
+  } else if(my.role === 'playerA' || my.role === 'playerB'){
+    // لاعب: نظهر زر الجرس (قابل للضغط) لكن نخفي أدوات المدير
+    welcomeOverlay.classList.add('hidden');
+    bellBtn.classList.remove('hidden');
+    bellBtn.classList.add('player');
+    playerOnlyNote.classList.remove('hidden');
+    mgrControls.classList.add('hidden');
+    mgrBuzzArea.classList.add('hidden');
+  } else {
+    // لم يحدد الدور => نظهر شاشة الترحيب
+    welcomeOverlay.classList.remove('hidden');
+  }
+}
+
+/* -------------------------
+   معالجة الانضمام (صفحة الترحيب)
+   ------------------------- */
+joinAButton.addEventListener('click', ()=>{
+  const name = playerNameInput.value.trim();
+  if(!name){ alert('اكتب اسمك ثم انضم'); return; }
+  const ok = addPlayerToTeam('A', name);
+  if(ok){
+    my.name = name; my.role = 'playerA'; my.teamKey = 'A';
+    saveLocalState(); setUIForRole();
+    alert('انضممت للفريق A. اضغط الجرس عندما تريد الإجابة.');
+  }
+});
+joinBButton.addEventListener('click', ()=>{
+  const name = playerNameInput.value.trim();
+  if(!name){ alert('اكتب اسمك ثم انضم'); return; }
+  const ok = addPlayerToTeam('B', name);
+  if(ok){
+    my.name = name; my.role = 'playerB'; my.teamKey = 'B';
+    saveLocalState(); setUIForRole();
+    alert('انضممت للفريق B. اضغط الجرس عندما تريد الإجابة.');
+  }
+});
+beManagerBtn.addEventListener('click', ()=>{
+  const name = playerNameInput.value.trim();
+  if(!name){ alert('اكتب اسمك (سيظهر اسم المدير)'); return; }
+  my.name = name; my.role = 'manager'; my.teamKey = null;
+  saveLocalState(); setUIForRole();
+  alert('أنت المدير الآن — لديك صلاحيات إدارة اللعبة.');
+});
+
+/* -------------------------
+   جرس (buzz) — عملياً محلي
+   ------------------------- */
+function renderBuzzQueue(){
+  if(buzzQueue.length === 0){
+    buzzListEl.innerHTML = 'لا أحد حتى الآن.';
+    return;
+  }
+  // كل عنصر: عرض الاسم + فريق + أزرار موافقة / رفض
+  buzzListEl.innerHTML = '';
+  buzzQueue.forEach((b, idx) => {
+    const div = document.createElement('div');
+    div.style.display='flex'; div.style.justifyContent='space-between'; div.style.alignItems='center';
+    div.style.padding='6px'; div.style.borderBottom='1px solid rgba(255,255,255,0.02)';
+    div.innerHTML = `<div><strong>${escapeHtml(b.name)}</strong> — ${b.team === 'A' ? 'الفريق A' : 'الفريق B'} <span style="color:var(--muted);font-size:12px;margin-left:8px">(${new Date(b.time).toLocaleTimeString()})</span></div>`;
+    const controls = document.createElement('div');
+    const approve = document.createElement('button');
+    approve.textContent = 'موافقة';
+    approve.className = 'btn small btn-action';
+    approve.style.marginLeft = '8px';
+    approve.onclick = ()=> { approveBuzz(idx); };
+    const reject = document.createElement('button');
+    reject.textContent = 'رفض';
+    reject.className = 'btn small btn-red';
+    reject.onclick = ()=> { rejectBuzz(idx); };
+    controls.appendChild(approve); controls.appendChild(reject);
+    div.appendChild(controls);
+    buzzListEl.appendChild(div);
+  });
+}
+
+/* player clicks bell */
+bellBtn.addEventListener('click', ()=>{
+  if(!my.name || !my.teamKey){ alert('لا بد أن تكون منضمًا لفريق لتضغط الجرس'); return; }
+  // إذا أنا لاعب: أضيف طلبي إلى الطابور (محلي)
+  // إذا سبق وطلبت فلا أعيد الطلب
+  const already = buzzQueue.some(b => b.name === my.name && b.team === my.teamKey);
+  if(already){ alert('لقد طلبت بالفعل — انتظر رد المدير'); return; }
+  const b = { name: my.name, team: my.teamKey, time: Date.now() };
+  buzzQueue.push(b);
+  renderBuzzQueue();
+  // لو المدير مفتوح على نفس الجهاز سيرى الطابور مباشرة
+  alert('تم إرسال جرسك — انتظر موافقة المدير.');
+});
+
+/* manager approves */
+function approveBuzz(index){
+  if(index < 0 || index >= buzzQueue.length) return;
+  const b = buzzQueue.splice(index,1)[0];
+  // تعيين المصرح له الآن
+  currentResponderEl.textContent = `مصرح بالإجابة: ${b.name} — ${b.team === 'A' ? team.A.name : team.B.name}`;
+  // تعيين دور الإجابة للفريق لو رغبت
+  currentAnsweringTeam = b.team;
+  document.getElementById('turnSelector').value = b.team;
+  roundStateEl.textContent = `جاري اللعب - دور ${team[b.team].name}`;
+  renderBuzzQueue();
+  // حفظ في localStorage (ليكون باقياً عند إعادة تحميل)
+  saveLocalState();
+}
+
+/* manager rejects */
+function rejectBuzz(index){
+  if(index < 0 || index >= buzzQueue.length) return;
+  const b = buzzQueue.splice(index,1)[0];
+  alert(`تم رفض طلب ${b.name}`);
+  renderBuzzQueue();
+}
+
+/* -------------------------
+   الأسئلة وواجهة العرض (منسوخة ومعتادة)
+   ------------------------- */
+function renderQuestions(){
+  qListEl.innerHTML='';
+  questions.forEach((qq,i)=>{
+    const d = document.createElement('div'); d.className='question-item';
+    d.innerHTML = `<div style="font-weight:700">${escapeHtml(qq.q)}</div><div style="color:var(--muted);font-size:13px">${qq.answers.length} إجابات</div>`;
+    // إذا كان المدير فقط يمكنه بدء الجولة
+    d.addEventListener('click', ()=> {
+      if(my.role !== 'manager'){ alert('فقط المدير يستطيع بدء الجولة'); return; }
+      startRound(i);
+    });
+    qListEl.appendChild(d);
+  });
+}
+function parseAnswers(text){
+  const parts = text.split(',').map(s=>s.trim()).filter(Boolean);
+  return parts.map(p=>{
+    const [t,pts] = p.split('|').map(x=>x && x.trim());
+    return {text: t||'—', pts: Number(pts||0)}
+  })
+}
+document.getElementById('addQ').addEventListener('click', ()=>{
+  if(my.role !== 'manager'){ alert('فقط المدير يستطيع إضافة الأسئلة'); return; }
+  const q = document.getElementById('qText').value.trim();
+  const a = document.getElementById('ansText').value.trim();
+  if(!q || !a){alert('املأ السؤال و الإجابات');return}
+  questions.push({q, answers: parseAnswers(a)});
+  document.getElementById('qText').value=''; document.getElementById('ansText').value='';
+  renderQuestions();
+});
+document.getElementById('importSample').addEventListener('click', ()=>{
+  if(my.role !== 'manager'){ alert('فقط المدير يستطيع استيراد الأسئلة'); return; }
+  questions = sampleQuestions(); renderQuestions(); alert('تم تحميل أسئلة نموذجية. اضغط على أي سؤال لبدء الجولة.');
+});
+function sampleQuestions(){
+  return [
+    { q: "شي تلقاه في المجلس", answers: [{text:"دلة قهوة",pts:30},{text:"تمر",pts:20},{text:"مساند",pts:15},{text:"سجاد",pts:10},{text:"بخور",pts:8},{text:"تلفزيون",pts:5}] },
+    { q: "شي تسويه أول ما تصحى من النوم", answers: [{text:"تفتح الجوال",pts:25},{text:"تصلي الفجر",pts:20},{text:"تغسل وجهك",pts:18},{text:"تشرب ماء",pts:15},{text:"تفرش أسنانك",pts:10}] },
+    { q: "أكلة شعبية سعودية", answers: [{text:"كبسة",pts:35},{text:"جريش",pts:20},{text:"قرصان",pts:15},{text:"مندي",pts:12},{text:"مراصيع",pts:8}] }
+  ];
+}
+
+/* عرض الجولة و الإجابات */
+function startRound(index){
+  if(my.role !== 'manager'){ alert('فقط المدير يستطيع بدء الجولة'); return; }
+  current.index = index; current.revealed = []; current.strikes = 0; current.stealMode = false; current.stealBy = null; current.boardPoints = 0;
+  const q = questions[index];
+  qDisplay.textContent = q.q;
+  qMeta.textContent = `عدد الإجابات: ${q.answers.length}`;
+  renderAnswers();
+  roundStateEl.textContent = `جاري اللعب - دور ${ team[currentAnsweringTeam].name }`;
+  document.getElementById('stealSuccess').classList.add('hidden');
+  // المدير يمكنه اختيار من يجيب عبر قائمة الجرس، أو يضغط Award عندما يجيب الفريق
+}
+function renderAnswers(){
+  answersGrid.innerHTML='';
+  if(current.index===-1) return;
+  const arr = questions[current.index].answers;
+  arr.forEach((a,i)=>{
+    const el = document.createElement('div'); el.className='answer';
+    if(current.revealed.includes(i)) el.classList.add('revealed');
+    // إجابة قابلة للنقر فقط للمدير
+    const txt = current.revealed.includes(i) ? escapeHtml(a.text) : '—';
+    const pts = current.revealed.includes(i) ? (a.pts || '') : '';
+    el.innerHTML = `<div class="txt">${txt}</div><div class="pts">${pts}</div>`;
+    el.addEventListener('click', ()=> {
+      if(my.role !== 'manager'){ return; } // اللاعبون لا يقدرون يكشفون
+      toggleReveal(i);
+    });
+    answersGrid.appendChild(el);
+  })
+}
+function toggleReveal(i){
+  if(current.index===-1) return;
+  if(!current.revealed.includes(i)){
+    current.revealed.push(i);
+    tryPlay(correctSound);
+    flashGreen();
+    if(current.revealed.length === questions[current.index].answers.length){
+      tryPlay(applauseSound);
+      throwConfetti();
+    }
+  } else {
+    current.revealed = current.revealed.filter(x=>x!==i);
+  }
+  renderAnswers();
+}
+document.getElementById('revealNext').addEventListener('click', ()=>{
+  if(my.role !== 'manager'){ alert('فقط المدير يستطيع كشف الإجابات'); return; }
+  if(current.index===-1) return alert('اختر سؤالاً أولاً');
+  const total = questions[current.index].answers.length;
+  for(let i=0;i<total;i++){
+    if(!current.revealed.includes(i)){ current.revealed.push(i); tryPlay(correctSound); break; }
+  }
+  if(current.revealed.length === questions[current.index].answers.length){ tryPlay(applauseSound); throwConfetti(); }
+  renderAnswers();
+});
+document.getElementById('flipAll').addEventListener('click', ()=>{
+  if(my.role !== 'manager'){ alert('فقط المدير يستطيع كشف الإجابات'); return; }
+  if(current.index===-1) return alert('اختر سؤالاً أولاً');
+  current.revealed = questions[current.index].answers.map((_,i)=>i);
+  renderAnswers();
+  tryPlay(applauseSound);
+  throwConfetti();
+});
+document.getElementById('clearReveal').addEventListener('click', ()=>{ current.revealed = []; renderAnswers(); roundStateEl.textContent='جاهز'; });
+
+/* previous reveal */
+document.getElementById('prevReveal').addEventListener('click', ()=>{
+  if(my.role !== 'manager'){ alert('فقط المدير يستطيع ذلك'); return; }
+  if(current.revealed.length===0) return;
+  current.revealed.pop(); renderAnswers();
+});
+
+/* -------------------------
+   نقاط و سترايك و سرقة
+   ------------------------- */
+function updateScores(){ teamAScoreEl.textContent = team.A.score; teamBScoreEl.textContent = team.B.score; saveLocalState(); }
+
+document.getElementById('awardA').addEventListener('click', ()=>{
+  if(my.role !== 'manager'){ alert('فقط المدير يستطيع منح النقاط'); return; }
+  if(current.index===-1) return alert('لا جولة');
+  if(current.stealMode && current.stealBy === 'A'){
+    tryPlay(correctSound); flashGreen();
+    team.A.score += current.boardPoints; updateScores();
+    alert(`${team.A.name} نجح في السرقة وحصل على ${current.boardPoints} نقطة`);
+    current.stealMode = false; roundStateEl.textContent = 'انتهت الجولة';
+    document.getElementById('stealSuccess').classList.add('hidden'); return;
+  }
+  const pts = current.revealed.reduce((s,i)=> s + (questions[current.index].answers[i].pts||0),0);
+  team.A.score += pts; updateScores(); tryPlay(applauseSound); throwConfetti();
+  alert(`أعطيت ${pts} نقطة لـ ${team.A.name}`);
+});
+document.getElementById('awardB').addEventListener('click', ()=>{
+  if(my.role !== 'manager'){ alert('فقط المدير يستطيع منح النقاط'); return; }
+  if(current.index===-1) return alert('لا جولة');
+  if(current.stealMode && current.stealBy === 'B'){
+    tryPlay(correctSound); flashGreen();
+    team.B.score += current.boardPoints; updateScores();
+    alert(`${team.B.name} نجح في السرقة وحصل على ${current.boardPoints} نقطة`);
+    current.stealMode = false; roundStateEl.textContent = 'انتهت الجولة';
+    document.getElementById('stealSuccess').classList.add('hidden'); return;
+  }
+  const pts = current.revealed.reduce((s,i)=> s + (questions[current.index].answers[i].pts||0),0);
+  team.B.score += pts; updateScores(); tryPlay(applauseSound); throwConfetti();
+  alert(`أعطيت ${pts} نقطة لـ ${team.B.name}`);
+});
+document.getElementById('strike').addEventListener('click', ()=>{
+  if(my.role !== 'manager'){ alert('فقط المدير يستطيع ذلك'); return; }
+  if(current.index===-1) return alert('لا جولة');
+  if(current.stealMode){
+    tryPlay(wrongSound);
+    const original = (current.stealBy === 'A') ? 'B' : 'A';
+    team[original].score += current.boardPoints; updateScores();
+    alert(`${team[current.stealBy].name} أخفق في السرقة. ${team[original].name} يحتفظ بـ ${current.boardPoints} نقطة`);
+    current.stealMode = false; current.stealBy = null; current.boardPoints = 0; roundStateEl.textContent = 'انتهت الجولة';
+    document.getElementById('stealSuccess').classList.add('hidden'); return;
+  }
+  current.strikes = (current.strikes || 0) + 1; tryPlay(wrongSound);
+  roundStateEl.textContent = `أخطاء: ${current.strikes} — دور ${team[currentAnsweringTeam].name}`;
+  if(current.strikes >= 3){
+    const other = (currentAnsweringTeam === 'A') ? 'B' : 'A';
+    current.stealMode = true; current.stealBy = other;
+    current.boardPoints = questions[current.index].answers.reduce((s,a)=> s + (a.pts||0), 0);
+    roundStateEl.textContent = `جولة السرقة - دور ${team[other].name}`;
+    alert(`3 سترايك! الآن دور ${team[other].name} في جولة السرقة (القيمة: ${current.boardPoints} نقطة).`);
+    document.getElementById('stealSuccess').classList.remove('hidden');
+  }
+});
+document.getElementById('stealSuccess').addEventListener('click', ()=>{
+  if(my.role !== 'manager'){ alert('فقط المدير يستطيع ذلك'); return; }
+  if(!current.stealMode) return;
+  const winner = current.stealBy; tryPlay(correctSound); flashGreen();
+  team[winner].score += current.boardPoints; updateScores();
+  alert(`${team[winner].name} نجحوا في السرقة وحصلوا على ${current.boardPoints} نقطة`);
+  current.stealMode = false; current.stealBy = null; current.boardPoints = 0; roundStateEl.textContent = 'انتهت الجولة';
+  document.getElementById('stealSuccess').classList.add('hidden');
+});
+
+/* new round / reset scores */
+document.getElementById('newRound').addEventListener('click', ()=>{
+  if(my.role !== 'manager'){ alert('فقط المدير يستطيع ذلك'); return; }
+  current.index=-1; current.revealed=[]; current.strikes=0; current.stealMode=false; current.stealBy=null; current.boardPoints=0;
+  qDisplay.textContent='اضغط على سؤال من الجهة اليسرى لبدء الجولة'; qMeta.textContent='—'; answersGrid.innerHTML=''; roundStateEl.textContent='جاهز';
+  document.getElementById('stealSuccess').classList.add('hidden');
+});
+document.getElementById('resetScores').addEventListener('click', ()=>{ if(my.role !== 'manager'){ alert('فقط المدير يستطيع ذلك'); return; } if(confirm('إعادة النقاط؟')){ team.A.score=0; team.B.score=0; updateScores(); } });
+
+/* export / import */
+function exportJSON(){ const data = JSON.stringify(questions, null, 2); const blob = new Blob([data], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='mkhawir_questions.json'; a.click(); URL.revokeObjectURL(url); }
+document.getElementById('exportBtn').addEventListener('click', ()=>{ if(my.role !== 'manager'){ alert('فقط المدير يستطيع ذلك'); return; } exportJSON(); });
+document.getElementById('importFile').addEventListener('change', (e)=>{ if(my.role !== 'manager'){ alert('فقط المدير يستطيع ذلك'); return; } const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = ev => { try { const parsed = JSON.parse(ev.target.result); if(Array.isArray(parsed)) { questions = parsed; renderQuestions(); alert('تم استيراد الأسئلة'); } else alert('الملف غير صحيح'); } catch(err){ alert('خطأ في قراءة الملف'); } }; reader.readAsText(file); });
+
+/* initialize sample data + local load */
+loadLocalState();
+questions = sampleQuestions();
+renderQuestions();
+updatePlayersDisplay();
+setUIForRole();
+renderBuzzQueue();
+
+/* -------------------------
+   Confetti و فلاش أخضر
+   ------------------------- */
+function flashGreen(){ document.body.classList.add('flash-green'); setTimeout(()=>document.body.classList.remove('flash-green'), 350); }
+const confCanvas = document.getElementById('confetti'); const ctx = confCanvas.getContext('2d'); let confettiPieces = []; function resizeCanvas(){ confCanvas.width = window.innerWidth; confCanvas.height = window.innerHeight; } window.addEventListener('resize', resizeCanvas); resizeCanvas();
+function throwConfetti(){ const count = 90; for(let i=0;i<count;i++) confettiPieces.push(createPiece()); if(!animating){ animating=true; requestAnimationFrame(drawConfetti); } }
+function createPiece(){ const w = Math.random()*10 + 6; const h = Math.random()*6 + 4; return { x: Math.random()*confCanvas.width, y: -20 - Math.random()*confCanvas.height*0.1, vx: (Math.random()-0.5)*4, vy: Math.random()*3 + 2, rot: Math.random()*360, dang: (Math.random()-0.5)*0.2, w, h, color: `hsl(${Math.floor(Math.random()*360)}, 70%, 60%)`, life: 0 } }
+let animating = false;
+function drawConfetti(){ ctx.clearRect(0,0,confCanvas.width, confCanvas.height); for(let i=confettiPieces.length-1;i>=0;i--){ const p = confettiPieces[i]; p.x += p.vx; p.y += p.vy; p.vy += 0.06; p.rot += p.dang * 10; p.life++; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot * Math.PI / 180); ctx.fillStyle = p.color; ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h); ctx.restore(); if(p.y > confCanvas.height + 50 || p.life > 400) confettiPieces.splice(i,1); } if(confettiPieces.length>0) requestAnimationFrame(drawConfetti); else animating=false; }
+
+/* -------------------------
+   أمان بسيط: تفادي XSS من الأسماء و الأسئلة
+   ------------------------- */
+function escapeHtml(str){ if(!str && str !== 0) return ''; return String(str).replace(/[&<>"'`=\/]/g, function(s){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;',"/":'&#x2F;','`':'&#x60;','=':'&#x3D;'}[s]; }); }
+
+/* -------------------------
+   وظائف مفيدة إضافية
+   ------------------------- */
+function tryPlay(sound){ sound.currentTime = 0; sound.play().catch(()=>{}); }
+
+/* Escape: الميزة الأخيرة — إزالة لاعب (مدير فقط) على سبيل المثال */
+function adminRemovePlayer(teamKey, playerName){
+  if(confirm(`حذف ${playerName} من الفريق ${teamKey} ؟`)){
+    removePlayerFromTeam(teamKey, playerName);
+    alert('تم الحذف');
+  }
+}
+
+/* عند الضغط على اسم لاعب في العرض — (لمدراء) نوفر طريقة للحذف */
+teamAPlayersEl.addEventListener('click', (e)=>{
+  if(my.role !== 'manager') return;
+  const name = prompt('اكتب اسم اللاعب الذي تريد حذفه من الفريق A (نسخه من العرض):');
+  if(name) adminRemovePlayer('A', name.trim());
+});
+teamBPlayersEl.addEventListener('click', (e)=>{
+  if(my.role !== 'manager') return;
+  const name = prompt('اكتب اسم اللاعب الذي تريد حذفه من الفريق B (نسخه من العرض):');
+  if(name) adminRemovePlayer('B', name.trim());
+});
+
+/* ملاحظات مهمة:
+   - هذا الكود يعمل محليًا: لو فتح اللاعبون الرابط على أجهزة مختلفة لن يتزامنوا.
+   - لعمل تزامن حقيقي: استبدل/أكمل قسم الـ buzzQueue و حفظ الحالات بـ Firebase Realtime DB أو WebSocket.
+   - لو تحب أجهز لك الربط بـ Firebase (مع قواعد أمان بسيطة) أقدر أعمله في الرد الجاي.
+*/
+
+</script>
+</body>
+</html>
