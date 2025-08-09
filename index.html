@@ -869,5 +869,220 @@ teamBPlayersEl.addEventListener('click', (e)=>{
   }
 </script>
 
+
+<!-- Realtime sync logic -->
+<script>
+// Reference to the database root for game state
+const stateRef = db.ref('game_state');
+
+// Initialize local reactive state mirrors
+function writeStateToDB(patch){
+  // patch is an object with fields to update
+  stateRef.update(patch);
+}
+
+// Listen for global state changes and apply them locally
+stateRef.on('value', snapshot => {
+  const st = snapshot.val() || {};
+  // Scores
+  if(st.scores){
+    team.A.score = st.scores.A || 0;
+    team.B.score = st.scores.B || 0;
+    updateScores();
+  }
+  // Current question index & revealed
+  if(typeof st.currentIndex !== 'undefined'){
+    current.index = st.currentIndex;
+    current.revealed = Array.isArray(st.revealed) ? st.revealed : [];
+    // Render question if index >=0
+    if(current.index >= 0){
+      const q = questions[current.index];
+      if(q){
+        qDisplay.textContent = q.q;
+        qMeta.textContent = `عدد الإجابات: ${q.answers.length}`;
+      }
+    } else {
+      qDisplay.textContent = 'اضغط على سؤال من الجهة اليسرى لبدء الجولة';
+      qMeta.textContent = '—';
+    }
+    renderAnswers();
+  }
+  // Buzz handling - single latest buzz
+  if(st.buzz){
+    const b = st.buzz;
+    // Show small notification area for manager, and alert for manager
+    if(my.role === 'manager'){
+      // prepend to buzzQueue UI area
+      if(b && b.player){
+        // avoid duplicate same timestamp
+        const exists = buzzQueue.some(x=>x.time === b.time && x.player === b.player);
+        if(!exists){
+          buzzQueue.unshift({name: b.player, team: b.team, time: b.time});
+          // limit queue size
+          if(buzzQueue.length>30) buzzQueue.pop();
+          renderBuzzQueue();
+        }
+      }
+    } else {
+      // non-managers get small toast when someone buzzed? no need, they initiated it.
+    }
+  }
+});
+
+// --- helper wrappers for manager operations ---
+
+// Manager: set current question (start round)
+function managerStartRound(index){
+  if(my.role !== 'manager') return alert('فقط المدير يستطيع بدء الجولة');
+  const q = questions[index];
+  if(!q) return alert('سؤال غير موجود');
+  // reset revealed and strikes and steal state
+  writeStateToDB({ currentIndex: index, revealed: [], strikes: 0, stealMode: false, boardPoints: 0 });
+  // also update local and UI
+  startRound(index);
+}
+
+// Manager: reveal an answer index and sync
+function managerRevealIndex(i){
+  if(my.role !== 'manager') return;
+  const arr = Array.from(new Set([...(current.revealed||[]), i]));
+  writeStateToDB({ revealed: arr });
+}
+
+// Manager: flip all
+function managerFlipAll(){
+  if(my.role !== 'manager') return;
+  const total = questions[current.index].answers.length;
+  const arr = Array.from({length: total}, (_,i)=>i);
+  writeStateToDB({ revealed: arr });
+}
+
+// Manager: clear reveals
+function managerClearReveals(){
+  if(my.role !== 'manager') return;
+  writeStateToDB({ revealed: [] });
+}
+
+// Manager: adjust score
+function managerAdjustScore(teamKey, delta){
+  if(my.role !== 'manager') return;
+  // transactionally update
+  const scoresRef = db.ref('game_state/scores/' + teamKey);
+  scoresRef.transaction(current => {
+    return (current || 0) + delta;
+  });
+}
+
+// Player: send buzz via DB
+function sendBuzzToDB(team, player){
+  // set a small object; using set so 'buzz' overwrites previous; we include random suffix to avoid overwrite races
+  db.ref('game_state/buzz').set({ team: team, player: player, time: Date.now() });
+  // optionally push to local queue UI
+}
+
+// Hook up UI elements to use these functions
+// Override previous local functions used in the page for manager actions to call manager* versions
+// When manager clicks a question in the list, call managerStartRound
+(function hookManagerActions(){
+  // Replace question click handlers by wrapping renderQuestions function afterwards. We'll override renderQuestions to attach managerStartRound.
+  const originalRenderQuestions = renderQuestions;
+  renderQuestions = function(){
+    qListEl.innerHTML='';
+    questions.forEach((qq,i)=>{
+      const d = document.createElement('div'); d.className='question-item';
+      d.innerHTML = `<div style="font-weight:700">${escapeHtml(qq.q)}</div><div style="color:var(--muted);font-size:13px">${qq.answers.length} إجابات</div>`;
+      d.addEventListener('click', ()=> {
+        if(my.role !== 'manager'){ alert('فقط المدير يستطيع بدء الجولة'); return; }
+        managerStartRound(i);
+      });
+      qListEl.appendChild(d);
+    });
+  };
+
+  // Override answer clicking to call managerRevealIndex
+  const originalRenderAnswers = renderAnswers;
+  renderAnswers = function(){
+    answersGrid.innerHTML='';
+    if(current.index===-1) return;
+    const arr = questions[current.index].answers;
+    arr.forEach((a,i)=>{
+      const el = document.createElement('div'); el.className='answer';
+      if(current.revealed.includes(i)) el.classList.add('revealed');
+      const txt = current.revealed.includes(i) ? escapeHtml(a.text) : '—';
+      const pts = current.revealed.includes(i) ? (a.pts || '') : '';
+      el.innerHTML = `<div class="txt">${txt}</div><div class="pts">${pts}</div>`;
+      el.addEventListener('click', ()=> {
+        if(my.role !== 'manager'){ return; } // only manager can reveal
+        // call managerRevealIndex
+        managerRevealIndex(i);
+      });
+      answersGrid.appendChild(el);
+    })
+  };
+})();
+
+// Replace previous bell send and listen functions to use DB
+function setupRealtimeBell(){
+  // For players, override bell button behavior
+  if(bellBtn){
+    bellBtn.onclick = function(){
+      if(!my.name || !my.teamKey){ alert('لا بد أن تكون منضمًا لفريق لتضغط الجرس'); return; }
+      sendBuzzToDB(my.teamKey, my.name);
+      alert('تم إرسال جرسك — انتظر موافقة المدير.');
+    };
+  }
+}
+
+// Manager approve/reject operations should also update DB: when approving we clear buzz and set currentResponder inside game_state
+function approveBuzzDB(index){
+  if(my.role !== 'manager') return;
+  const b = buzzQueue.splice(index,1)[0];
+  if(!b) return;
+  // set current responder and clear latest buzz
+  writeStateToDB({ currentResponder: b.name, currentResponderTeam: b.team, buzz: null });
+  renderBuzzQueue();
+  currentResponderEl.textContent = `مصرح بالإجابة: ${b.name} — ${b.team === 'A' ? team.A.name : team.B.name}`;
+}
+
+function rejectBuzzDB(index){
+  if(my.role !== 'manager') return;
+  buzzQueue.splice(index,1);
+  renderBuzzQueue();
+}
+
+// wire manager approve/reject to use DB versions
+approveBuzz = approveBuzzDB;
+rejectBuzz = rejectBuzzDB;
+
+// initialize realtime hooks after page ready
+window.addEventListener('load', ()=>{
+  // ensure firebase db available
+  if(typeof db === 'undefined') return;
+  // setup bell behavior
+  setupRealtimeBell();
+
+  // if manager, start listening (listenForBuzz already wired to DB but ensure UI)
+  if(my.role === 'manager'){
+    // nothing else required; stateRef listener handles buzz and state changes
+  }
+
+  // Also observe scores node to update local display (ensures quick UI update)
+  db.ref('game_state/scores').on('value', snap => {
+    const s = snap.val() || {};
+    team.A.score = s.A || 0;
+    team.B.score = s.B || 0;
+    updateScores();
+  });
+
+  // listen for currentResponder changes to show on UI
+  db.ref('game_state/currentResponder').on('value', snap => {
+    const name = snap.val();
+    if(name){
+      currentResponderEl.textContent = 'مصرح بالإجابة: ' + name;
+    }
+  });
+});
+</script>
+
 </body>
 </html>
