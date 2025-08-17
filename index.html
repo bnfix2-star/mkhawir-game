@@ -1,588 +1,277 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>فاملي فيود — لعبة عائلية</title>
-<style>
-  :root{
-    --card: rgba(3,8,16,0.75);
-    --muted:#9aa7b8;
-    --accent:#16a34a;
-    --glass: rgba(255,255,255,0.03);
-    --glass-2: rgba(255,255,255,0.02);
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0;
-    font-family:Inter, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    background:
-      linear-gradient(180deg, rgba(2,6,23,0.75) 0%, rgba(2,6,23,0.75) 60%),
-      url('background.png') repeat;
-    background-size: cover;
-    color:#e6eef6;
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    padding:20px;
-    /* حركة بسيطة لموضع الخلفية */
-    animation: moveBg 30s linear infinite;
-    transition: background-color .25s ease;
-  }
-  @keyframes moveBg {
-    from { background-position: 0 0; }
-    to { background-position: 100% 0; }
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>فاملي فيود </title>
+  <style>
+    :root{ --blue:#0b56a3;--blueDark:#083d73;--gold:#ffd44d;--gold2:#f1b21a;--red:#e11d48;--green:#10b981;--text:#fff7e6; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu; background:linear-gradient(#0b3c7a,#0a2f5c 40%,#0b3c7a); color:#fff;}
+    .container{max-width:1100px;margin-inline:auto;padding:16px 20px 120px}
+    header{position:sticky;top:0;background:#0b2f63cc;backdrop-filter:blur(6px);border-bottom:1px solid #ffffff22;z-index:10}
+    header .bar{max-width:1100px;margin:auto;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .btn{padding:10px 14px;border-radius:14px;border:1px solid #ffffff22;background:#184b93;cursor:pointer;color:#fff;font-weight:600;display:inline-flex;align-items:center;gap:8px;box-shadow:0 4px 12px #0003}
+    .btn:hover{background:#2260b8}
+    .btn.red{background:#b51f3c;border-color:#ff92a6}
+    .btn.yellow{background:#ffd44d;color:#0b2f63;border-color:#fff2;border-width:2px;font-weight:800}
+    .btn.green{background:#169a79}
+    .grid{display:grid;gap:14px}
+    .cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+    @media (max-width:720px){.cols-2{grid-template-columns:1fr}}
+    .panel{border:4px solid #3b82f6;border-radius:20px;padding:16px;background:linear-gradient(#0b2f63,#114a92)}
+    .panel.active{border-color:var(--gold)}
+    .team-head{display:flex;justify-content:space-between;align-items:center;gap:10px}
+    .team-name{background:transparent;border:none;border-bottom:1px solid #ffffff55;color:#fff;font-size:18px;font-weight:700;outline:none;width:180px}
+    .strikes{display:flex;gap:6px}
+    .strike{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;background:#b51f3c;color:#fff;font-weight:900;opacity:.3;transition:.2s}
+    .strike.on{opacity:1;transform:scale(1)}
 
-  .flash-green {
-    animation: flashGreen 0.35s ease;
-  }
-  @keyframes flashGreen {
-    0% { background-color: rgba(6,78,59,0.95); }
-    100% { background-color: transparent; }
-  }
+    .board{position:relative;border:8px solid var(--gold);border-radius:28px;padding:18px;background:radial-gradient(80% 120% at 50% 0%, var(--blue), var(--blueDark));box-shadow:0 10px 30px #0006}
+    .question{display:grid;place-items:center}
+    .qtext{display:inline-block;background:#ffd44de6;color:#0b2f63;padding:8px 14px;border-radius:16px;font-size:clamp(16px,2.4vw,28px);font-weight:900;box-shadow:0 6px 20px #0005}
+    .small{opacity:.85;font-size:12px;margin-top:6px}
 
-  .app{width:100%;max-width:1200px}
-  header{display:flex;gap:12px;align-items:center;margin-bottom:18px}
-  .title{font-size:22px;font-weight:800}
-  .subtitle{color:var(--muted);font-size:13px}
+    .answers{display:grid;gap:10px;margin-top:10px;grid-template-columns:repeat(2,minmax(0,1fr))}
+    @media (max-width:720px){.answers{grid-template-columns:1fr}}
+    .tile{position:relative;height:84px;border:4px solid var(--gold);border-radius:18px;overflow:hidden;background:#0b2f63cc;cursor:pointer;box-shadow:inset 0 0 0 999px #0000000f, 0 8px 16px #0004;transition:.15s}
+    .tile:hover{transform:translateY(-1px)}
+    .tile .inner{position:relative;z-index:2;height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
+    .idx{color:#ffe9a6;font-weight:900;font-size:28px}
+    .bar{height:10px;width:50%;border-radius:8px;background:#2e63a8;opacity:.6}
+    .reveal{display:flex;align-items:center;gap:10px}
+    .ans{font-weight:800;font-size:clamp(16px,2.2vw,22px);color:#fff} /* لون الإجابات أبيض */
+    .pts{font-weight:900;font-size:28px;background:#ffd44d; padding:4px 10px;border-radius:10px;color:#0b2f63}
+    .bgdots{position:absolute;inset:0;display:grid;grid-template-columns:repeat(12,1fr);gap:10px;padding:10px;opacity:.35}
+    .bgdots span{border-radius:999px;background:radial-gradient(#ffe07a,#f7c948)}
 
-  .layout{display:grid;grid-template-columns:380px 1fr;gap:18px}
-  .panel{background:var(--card);backdrop-filter: blur(6px);border-radius:14px;padding:16px;box-shadow:0 8px 30px rgba(2,6,23,0.7)}
+    .row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+    .badge{display:inline-flex;align-items:center;gap:8px;background:#143e7a;border:1px solid #ffffff22;padding:8px 12px;border-radius:14px;box-shadow:0 4px 12px #0003}
+    .value{color:#ffd44d;font-weight:900;font-size:20px}
 
-  /* left */
-  .controls h3{margin:0 0 8px 0}
-  .input, .select, .btn{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:var(--glass);color:inherit;margin-bottom:8px}
-  .row{display:flex;gap:8px;margin-bottom:10px}
-  .small{padding:8px;font-size:13px}
-  .teams{display:flex;gap:8px;margin-bottom:12px}
-  .team-card{flex:1;padding:12px;border-radius:10px;background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);text-align:center}
-  .team-score{font-size:20px;font-weight:900;margin-top:6px}
-  .questions{max-height:260px;overflow:auto;margin-top:8px}
-  .question-item{padding:10px;border-radius:10px;margin-bottom:8px;background:var(--glass-2);cursor:pointer;transition:transform .12s, background .12s}
-  .question-item:hover{transform:translateY(-3px);background:rgba(255,255,255,0.035)}
+    .footer{position:fixed;bottom:10px;left:0;right:0}
+    .footer .wrap{max-width:1100px;margin:auto;background:#0b2f63cc;border:1px solid #ffffff22;padding:10px 14px;border-radius:14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
 
-  /* right */
-  .board{display:flex;flex-direction:column;gap:12px}
-  .board-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-  .big-question{font-size:22px;font-weight:800}
-  .answers{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-  .answer{padding:12px;border-radius:12px;background:rgba(255,255,255,0.02);min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:12px;transition:all .18s;cursor:pointer}
-  .answer.revealed{background:linear-gradient(90deg, rgba(22,163,74,0.12), rgba(22,163,74,0.06));border:1px solid rgba(22,163,74,0.14);transform:scale(1.02)}
-  .answer .txt{font-size:16px}
-  .answer .pts{font-weight:900}
-
-  .controls-footer{display:flex;gap:8px}
-  .btn-action{background:linear-gradient(90deg,#0ea5a3,#06b6d4);border:none;color:#042024;padding:10px 14px;border-radius:10px}
-  .btn-red{background:linear-gradient(90deg,#ef4444,#f97316);border:none;color:white;padding:10px 14px;border-radius:10px}
-  .hint{font-size:13px;color:var(--muted);margin-top:6px}
-
-  footer{margin-top:12px;color:var(--muted);font-size:13px}
-
-  /* confetti canvas overlay */
-  #confetti {
-    position:fixed;
-    left:0;top:0;right:0;bottom:0;
-    pointer-events:none;
-    z-index:999;
-  }
-
-  .hidden{display:none !important}
-
-  @media (max-width:920px){
-    .layout{grid-template-columns:1fr;}.board{order:2}.panel{padding:12px}
-    .answers{grid-template-columns:1fr}
-  }
-</style>
+    .hidden{display:none}
+  </style>
 </head>
 <body>
-  <canvas id="confetti"></canvas>
-
-  <div class="app" role="application" aria-label="فاملي فيود — لوحة اللعبة">
-    <header>
-      <div>
-        <div class="title">فاملي فيود</div>
-        <div class="subtitle">تصميم المبرمج الكبير رائد حاضر مسفر هيف الطوال الدوسري</div>
+  <header>
+    <div class="bar">
+      <div style="font-weight:900;font-size:20px;display:flex;align-items:center;gap:8px">✨ فاملي فيود </div>
+      <div class="row">
+        <button class="btn" id="muteBtn">🔊 صوت</button>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <div class="layout">
-      <aside class="panel controls" aria-label="لوحة التحكم">
-        <h3>الأفرقة</h3>
+  <!-- أصوات (ملفات MP3 خارجية يجب وضعها بنفس المجلد) -->
+  <audio id="sndReveal" src="reveal.mp3" preload="auto"></audio>
+  <audio id="sndStrike" src="strike.mp3" preload="auto"></audio>
+  <audio id="sndClap" src="clap.mp3" preload="auto"></audio>
 
+  <div class="container">
+    <div class="grid cols-2">
+      <div class="panel" id="teamA">
+        <div class="team-head">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span>👥</span>
+            <input class="team-name" id="nameA" value="فريق A" />
+          </div>
+          <div class="row">
+            <div class="strikes" id="strikesA">
+              <div class="strike">X</div><div class="strike">X</div><div class="strike">X</div>
+            </div>
+            <div style="font-size:28px;font-weight:900" id="scoreA">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="teamB">
+        <div class="team-head">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span>👥</span>
+            <input class="team-name" id="nameB" value="فريق B" />
+          </div>
+          <div class="row">
+            <div class="strikes" id="strikesB">
+              <div class="strike">X</div><div class="strike">X</div><div class="strike">X</div>
+            </div>
+            <div style="font-size:28px;font-weight:900" id="scoreB">0</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="board" id="board">
+      <div class="question">
+        <div class="qtext" id="qtext">—</div>
+        <div class="small" id="qsmall"></div>
+      </div>
+
+      <div class="answers" id="answers"></div>
+
+      <div class="row" style="justify-content:space-between;margin-top:8px">
         <div class="row">
-          <input id="teamAName" class="input" placeholder="اسم الفريق أ" value="الفريق الأحمر" />
-          <input id="teamBName" class="input" placeholder="اسم الفريق ب" value="الفريق الأزرق" />
-        </div>
-
-        <div class="teams">
-          <div class="team-card">
-            <div id="teamADisplay" style="font-weight:800">الفريق الأحمر</div>
-            <div class="team-score" id="teamAScore">0</div>
-          </div>
-          <div class="team-card">
-            <div id="teamBDisplay" style="font-weight:800">الفريق الأزرق</div>
-            <div class="team-score" id="teamBScore">0</div>
+          <div class="badge">🏆 <span>رصيد الجولة:</span> <span class="value" id="roundPot">0</span></div>
+          <div class="badge">مضاعِف:
+            <select id="mult" style="background:#0a3570;color:#fff;border-radius:10px;padding:4px 8px;margin-inline-start:6px">
+              <option value="1">x1</option>
+              <option value="2">x2</option>
+              <option value="3">x3</option>
+            </select>
           </div>
         </div>
-
-        <div style="display:flex;gap:8px;margin-bottom:8px">
-          <button class="btn small btn-action" id="newRound">جولة جديدة</button>
-          <button class="btn small" id="resetScores">إعادة النقاط</button>
+        <div class="row">
+          <button class="btn" id="stealBtn">💣 سرقة</button>
+          <button class="btn" id="switchBtn">🔁 تبديل الدور</button>
+          <button class="btn red" id="strikeBtn">❌ خطأ (X)</button>
+          <button class="btn yellow" id="awardCurrent">منح النقاط للفريق الحالي</button>
+          <button class="btn" id="awardOther">منح النقاط للفريق الآخر</button>
         </div>
+      </div>
 
-        <div style="display:flex;gap:8px;margin-bottom:8px;align-items:center">
-          <div style="font-size:13px;color:var(--muted)">دور الإجابة الآن:</div>
-          <button id="setTurnA" class="btn small">فريق أ</button>
-          <button id="setTurnB" class="btn small">فريق ب</button>
+      <div class="row" style="justify-content:space-between;margin-top:6px">
+        <div class="small">كل الإجابات مكشوفة؟ <b id="allRevealed">لا</b></div>
+        <div class="row">
+          <button class="btn" id="nextBtn">سؤال تالي</button>
+          <button class="btn" id="resetBtn">🔄 إعادة ضبط</button>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <h3>الأسئلة (قائمة)</h3>
-        <div class="questions" id="questionsList" aria-live="polite"></div>
-
-        <div style="display:flex;gap:8px;margin-top:8px">
-        </div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button id="addQ" class="btn small">أضف السؤال</button>
-          <button id="importSample" class="btn small">تحميل أمثلة</button>
-        </div>
-
-        <div class="hint">مثال: تفاح|35, موز|28, برتقال|18</div>
-
-        <div style="height:12px"></div>
-        <h3>أدوات الجولة</h3>
-        <div style="display:flex;gap:8px;margin-bottom:8px">
-          <button class="btn small" id="revealNext">كشف التالي</button>
-          <button class="btn small" id="flipAll">كشف الكل</button>
-        </div>
-
-        <div class="controls-footer">
-          <button class="btn small btn-action" id="awardA">أضف نقاط لفريق أ</button>
-          <button class="btn small btn-action" id="awardB">أضف نقاط لفريق ب</button>
-          <button class="btn small btn-red" id="strike">خطأ / سترايك</button>
-        </div>
-
-        <div style="margin-top:8px">
-          <button id="stealSuccess" class="btn small btn-action hidden">نجحوا في السرقة (منح النقاط)</button>
-        </div>
-
-        <footer>ضع صورة الخلفية باسم <code>background.png</code> وملفات الصوت في نفس المجلد.</footer>
-
-        <div style="margin-top:8px">
-          <button id="exportBtn" class="btn small">تصدير الأسئلة (JSON)</button>
-          <label class="btn small" style="margin-right:8px">استيراد JSON
-            <input id="importFile" type="file" accept=".json" style="display:none">
-          </label>
-        </div>
-      </aside>
-
-      <main class="panel board" aria-label="لوحة العرض">
-        <div class="board-top">
-          <div>
-            <div class="big-question" id="qDisplay">اضغط على سؤال من الجهة اليسرى لبدء الجولة</div>
-            <div class="subtitle" id="qMeta">عدد الإجابات: —</div>
-          </div>
-          <div style="text-align:center">
-            <div style="font-size:13px;color:var(--muted)">حالة الجولة</div>
-            <div id="roundState" style="font-weight:800; font-size:18px">جاهز</div>
-          </div>
-        </div>
-
-        <div class="answers" id="answersGrid" aria-live="polite">
-          <!-- بطاقات الإجابة تظهر هنا -->
-        </div>
-
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px">
-          <button class="btn btn-action" id="prevReveal">السابق</button>
-          <button class="btn" id="clearReveal">مسح كشف</button>
-        </div>
-      </main>
+  <div class="footer">
+    <div class="wrap">
+      <div class="small">© فاملي فيود حقوق متجر دارك ستور </div>
+<div class="small"><a id="customLink" href="https://discord.gg/QNnGmznb99" target="_blank" style="color:#ffd44d;text-decoration:underline">الدسكورد</a></div>
+      <div class="small"><a id="customLink" href="https://magenta-allyce-27.tiiny.site/" target="_blank" style="color:#ffd44d;text-decoration:underline">رابط الإجابات</a></div>
     </div>
   </div>
 
 <script>
-/* -------------------------
-  بيانات وأساليب اللعبة (معدلة ومتكاملة)
-   ------------------------- */
-let questions = [];
-let current = {
-  index: -1,
-  revealed: [],
-  strikes: 0,
-  stealMode: false,
-  stealBy: null,
-  boardPoints: 0
-};
-// من يبدأ بالرد حالياً (A أو B). يمكنك تغييره من الأزرار.
-let currentAnsweringTeam = 'A';
+  const DEFAULT_QUESTIONS = [{"prompt": "اذكر شيّ تسويه أول ما تصحى", "answers": [{"text": "أطفي المنبّه", "points": 30}, {"text": "أصلّي", "points": 22}, {"text": "أشيّك الجوال", "points": 18}, {"text": "أفرّش", "points": 12}, {"text": "قهوة/شاي", "points": 10}, {"text": "شاور", "points": 8}]}, {"prompt": "شيّ دايم تلقاه في الدَرْوَج حق المكتب", "answers": [{"text": "أقلام", "points": 30}, {"text": "دفتر ملاحظات", "points": 22}, {"text": "شواحن/كيابل", "points": 18}, {"text": "كمّامات/مناديل", "points": 12}, {"text": "مقص/دباسة", "points": 10}, {"text": "حلا/سناك", "points": 8}]}, {"prompt": "طبق سعودي تحنّ له إذا سافرت", "answers": [{"text": "كبسة", "points": 30}, {"text": "مندي", "points": 22}, {"text": "مقلقل", "points": 18}, {"text": "جريش/قرصان", "points": 12}, {"text": "مرقوق", "points": 10}, {"text": "مفطح", "points": 8}]}, {"prompt": "شيّ ما يطلع من شنطة السعودي/ـة", "answers": [{"text": "مفاتيح", "points": 30}, {"text": "محفظة", "points": 22}, {"text": "عطر/بخّاخ", "points": 18}, {"text": "سماعات", "points": 12}, {"text": "معقّم/منديل", "points": 10}, {"text": "باور بانك", "points": 8}]}, {"prompt": "مدينة سعودية للتمشية الويكند", "answers": [{"text": "الرياض", "points": 30}, {"text": "جدة", "points": 22}, {"text": "الخبر/الدمام", "points": 18}, {"text": "العلا", "points": 12}, {"text": "أبها", "points": 10}, {"text": "الطايف", "points": 8}]}, {"prompt": "مكان تزوره قبل السفر", "answers": [{"text": "المطار بدري", "points": 30}, {"text": "المغسلة/حلاق", "points": 22}, {"text": "صيدلية", "points": 18}, {"text": "سوبرماركت", "points": 12}, {"text": "بنشر/فحص الكفرات", "points": 10}, {"text": "صراف/البنك", "points": 8}]}, {"prompt": "شيّ تقولَه إذا أحد تأخّر عليك", "answers": [{"text": "وينك؟", "points": 30}, {"text": "تأخّرت!", "points": 22}, {"text": "قريب؟", "points": 18}, {"text": "أرسل موقعك", "points": 12}, {"text": "ننتظر من زمان", "points": 10}, {"text": "خلّك سريع", "points": 8}]}, {"prompt": "أقسام تلقاها في أي سوبرماركت", "answers": [{"text": "خضار وفواكه", "points": 30}, {"text": "خبز ومخبوزات", "points": 22}, {"text": "منتجات ألبان", "points": 18}, {"text": "لحوم ودواجن", "points": 12}, {"text": "مشروبات", "points": 10}, {"text": "سناكات/شوكولاتة", "points": 8}]}, {"prompt": "شيّ تسويه إذا قطعت عليك الإشارة صفر", "answers": [{"text": "أهدي السرعة", "points": 30}, {"text": "أنتظر الثانية", "points": 22}, {"text": "أشيّك المرايات", "points": 18}, {"text": "أجهّز الانعطاف", "points": 12}, {"text": "أشيّك الجوال بسرعة", "points": 10}, {"text": "أرفع الصوت", "points": 8}]}, {"prompt": "كلمة سعودية معناها زحمة", "answers": [{"text": "زحمة", "points": 30}, {"text": "فلّة/دحسة", "points": 22}, {"text": "معلّق", "points": 18}, {"text": "كتمة", "points": 12}, {"text": "واقف الطريق", "points": 10}, {"text": "ما فيه مواقف", "points": 8}]}, {"prompt": "شيّ في الاستراحة", "answers": [{"text": "ملعب طاولة/بلياردو", "points": 30}, {"text": "شواية/قدور", "points": 22}, {"text": "بلوت/كوتشينة", "points": 18}, {"text": "بلايستيشن", "points": 12}, {"text": "جلسة خارجية", "points": 10}, {"text": "ملعب صغير", "points": 8}]}, {"prompt": "مشروب مشهور مع الفطور", "answers": [{"text": "شاي", "points": 30}, {"text": "قهوة", "points": 22}, {"text": "حليب", "points": 18}, {"text": "عصير برتقال", "points": 12}, {"text": "نسكافيه", "points": 10}, {"text": "ماء", "points": 8}]}, {"prompt": "أكثر نادي ينذكر في نقاشات الكورة", "answers": [{"text": "الهلال", "points": 30}, {"text": "النصر", "points": 22}, {"text": "الاتحاد", "points": 18}, {"text": "الأهلي", "points": 12}, {"text": "الشباب", "points": 10}, {"text": "الاتفاق", "points": 8}]}, {"prompt": "شيّ تحتاجه مع الكبسة", "answers": [{"text": "سلطة", "points": 30}, {"text": "لبن", "points": 22}, {"text": "شطة", "points": 18}, {"text": "خبز", "points": 12}, {"text": "ماء/مشروب", "points": 10}, {"text": "مخلّل", "points": 8}]}, {"prompt": "مكان طبيعي حلو للتخييم", "answers": [{"text": "الصحراء/النفود", "points": 30}, {"text": "العلا", "points": 22}, {"text": "الطايف/الشفا", "points": 18}, {"text": "أبها/السودة", "points": 12}, {"text": "العقير", "points": 10}, {"text": "نيوم/تبوك", "points": 8}]}, {"prompt": "كلمة سعودية تعني زعلان", "answers": [{"text": "متضايق", "points": 30}, {"text": "قافلة معي", "points": 22}, {"text": "مكسور خاطره", "points": 18}, {"text": "منحاش", "points": 12}, {"text": "متنكد", "points": 10}, {"text": "طفشان", "points": 8}]}, {"prompt": "شيّ تسمعه من أمك إذا تأخّرت", "answers": [{"text": "وينك؟", "points": 30}, {"text": "ما ترد!", "points": 22}, {"text": "تعال بدري", "points": 18}, {"text": "أنتبه لنفسك", "points": 12}, {"text": "اتصل إذا تأخّرت", "points": 10}, {"text": "مو كل يوم كذا", "points": 8}]}, {"prompt": "شيّ تنظّفه بالبيت كل يوم", "answers": [{"text": "المطبخ", "points": 30}, {"text": "الصالة", "points": 22}, {"text": "الأرضيات", "points": 18}, {"text": "الحمّام", "points": 12}, {"text": "الطاولات", "points": 10}, {"text": "الغبار", "points": 8}]}, {"prompt": "أكلة رمضانية مشهورة", "answers": [{"text": "سمبوسة", "points": 30}, {"text": "شوربة", "points": 22}, {"text": "لقيمات", "points": 18}, {"text": "فطاير", "points": 12}, {"text": "كبة", "points": 10}, {"text": "تمر", "points": 8}]}, {"prompt": "شيّ تلبسه ويضيع كثير", "answers": [{"text": "مفاتيح", "points": 30}, {"text": "عقال", "points": 22}, {"text": "سماعات", "points": 18}, {"text": "نظارة", "points": 12}, {"text": "ريموت", "points": 10}, {"text": "محفظة", "points": 8}]}, {"prompt": "شيّ تحطه بالسيارة للطوارئ", "answers": [{"text": "سبير/عدة بنشر", "points": 30}, {"text": "كابل شحن", "points": 22}, {"text": "طفاية حريق", "points": 18}, {"text": "ماء", "points": 12}, {"text": "إسعافات أولية", "points": 10}, {"text": "بطانية/رداء", "points": 8}]}, {"prompt": "أفضل وقت تتمشى فيه بالكورنيش", "answers": [{"text": "المساء", "points": 30}, {"text": "بعد العصر", "points": 22}, {"text": "الصباح بدري", "points": 18}, {"text": "العصر", "points": 12}, {"text": "وقت الجو حلو", "points": 10}, {"text": "نهاية الأسبوع", "points": 8}]}, {"prompt": "كلمة سعودية بديلة لـ (ممتاز)", "answers": [{"text": "فلّة", "points": 30}, {"text": "رايق", "points": 22}, {"text": "عال العال", "points": 18}, {"text": "تمام", "points": 12}, {"text": "على كيفك", "points": 10}, {"text": "قمّة", "points": 8}]}, {"prompt": "شيّ يكثر في الويكند", "answers": [{"text": "مشاوير", "points": 30}, {"text": "ازدحام", "points": 22}, {"text": "عزايم/جمعات", "points": 18}, {"text": "سفرات قصيرة", "points": 12}, {"text": "مباريات", "points": 10}, {"text": "سهر", "points": 8}]}, {"prompt": "قسم مشهور في المول", "answers": [{"text": "ملابس", "points": 30}, {"text": "مطاعم", "points": 22}, {"text": "ألعاب أطفال", "points": 18}, {"text": "الكترونيات", "points": 12}, {"text": "عطور/مكياج", "points": 10}, {"text": "هايبر ماركت", "points": 8}]}, {"prompt": "شيّ تخاف يخلّص بالبيت", "answers": [{"text": "الغاز", "points": 30}, {"text": "القهوة", "points": 22}, {"text": "الخبز", "points": 18}, {"text": "الماء", "points": 12}, {"text": "المناديل", "points": 10}, {"text": "الشحن/الكهرب", "points": 8}]}, {"prompt": "طريقة تقول فيها (آسف) باللهجة", "answers": [{"text": "سامحني", "points": 30}, {"text": "عذرًا", "points": 22}, {"text": "أبد ما قصدت", "points": 18}, {"text": "غصب عني", "points": 12}, {"text": "تكفى", "points": 10}, {"text": "على راسي", "points": 8}]}, {"prompt": "شيّ تسويه قبل العيد", "answers": [{"text": "تجهيز الملابس", "points": 30}, {"text": "توزيع العيدية", "points": 22}, {"text": "شراء الحلويات", "points": 18}, {"text": "تنظيف البيت", "points": 12}, {"text": "قص/صبغ", "points": 10}, {"text": "ترتيب الزيارات", "points": 8}]}, {"prompt": "أفضل سناك مع القهوة", "answers": [{"text": "تمر", "points": 30}, {"text": "كيك", "points": 22}, {"text": "بسكويت", "points": 18}, {"text": "شوكولاتة", "points": 12}, {"text": "تارت/كوكيز", "points": 10}, {"text": "معمول", "points": 8}]}, {"prompt": "وظيفة يسمونها (مرموقة)", "answers": [{"text": "طبيب", "points": 30}, {"text": "مهندس", "points": 22}, {"text": "طيّار", "points": 18}, {"text": "قانوني", "points": 12}, {"text": "مدير", "points": 10}, {"text": "مبرمج", "points": 8}]}, {"prompt": "شيّ تشتريه جديد وتغطيه بجلد/حماية", "answers": [{"text": "جوال", "points": 30}, {"text": "تابلت", "points": 22}, {"text": "لابتوب", "points": 18}, {"text": "سيارة", "points": 12}, {"text": "ساعة ذكية", "points": 10}, {"text": "سماعات", "points": 8}]}, {"prompt": "شيّ تسويه إذا ارتفعت الحرارة", "answers": [{"text": "أشغّل المكيف", "points": 30}, {"text": "أكثر ماء", "points": 22}, {"text": "أجلس بالبيت", "points": 18}, {"text": "سباحة", "points": 12}, {"text": "سفر للبرد", "points": 10}, {"text": "آيسكريم", "points": 8}]}, {"prompt": "كلمة سعودية بمعنى (عجّبني)", "answers": [{"text": "عجبني", "points": 30}, {"text": "عجيب", "points": 22}, {"text": "يهبّل", "points": 18}, {"text": "سنع", "points": 12}, {"text": "فخامة", "points": 10}, {"text": "خيالي", "points": 8}]}, {"prompt": "أكثر تطبيق تُرسل منه الموقع", "answers": [{"text": "واتساب", "points": 30}, {"text": "سناب", "points": 22}, {"text": "قوقل مابس", "points": 18}, {"text": "خرائط أبل", "points": 12}, {"text": "تويتر", "points": 10}, {"text": "تيليجرام", "points": 8}]}, {"prompt": "شيّ تقوله للسواق (التطبيق)", "answers": [{"text": "ثواني جاي", "points": 30}, {"text": "أرسل موقعك", "points": 22}, {"text": "واقف عند البوابة", "points": 18}, {"text": "لا تطفّي العدّاد", "points": 12}, {"text": "أبتّصل لك", "points": 10}, {"text": "الله يقويك", "points": 8}]}, {"prompt": "أكثر طبق ينطلب دليفري", "answers": [{"text": "برغر", "points": 30}, {"text": "شاورما", "points": 22}, {"text": "بيتزا", "points": 18}, {"text": "بروست", "points": 12}, {"text": "رز/كبسة", "points": 10}, {"text": "سوشي", "points": 8}]}, {"prompt": "شيّ تعلمته بعد ما سقت", "answers": [{"text": "أصبر على الزحمة", "points": 30}, {"text": "أنتبه للدوارات", "points": 22}, {"text": "ما أمسك الجوال", "points": 18}, {"text": "أشيك المرايات", "points": 12}, {"text": "أحافظ على مسافة", "points": 10}, {"text": "أقرا اللوحات", "points": 8}]}, {"prompt": "مدينة سعودية جوّها بارد بالصيف", "answers": [{"text": "أبها/السودة", "points": 30}, {"text": "الطايف", "points": 22}, {"text": "بلجرشي/الباحة", "points": 18}, {"text": "تنومة", "points": 12}, {"text": "بللسمر", "points": 10}, {"text": "الشفا", "points": 8}]}, {"prompt": "شيّ تسويه إذا أحد عطّسك", "answers": [{"text": "يرحمكم الله", "points": 30}, {"text": "يرحمك الله", "points": 22}, {"text": "عافاك الله", "points": 18}, {"text": "يصير خير", "points": 12}, {"text": "صحة", "points": 10}, {"text": "الله يحييك", "points": 8}]}, {"prompt": "أكثر وقت ينقطع فيه النت", "answers": [{"text": "وقت المطر", "points": 30}, {"text": "نهاية الأسبوع", "points": 22}, {"text": "وقت الذروة", "points": 18}, {"text": "إذا كثير على الشبكة", "points": 12}, {"text": "انقطاع الكهرباء", "points": 10}, {"text": "عطل المودم", "points": 8}]}, {"prompt": "هواية شعبية", "answers": [{"text": "صيد/بر", "points": 30}, {"text": "كرة", "points": 22}, {"text": "بلايستيشن", "points": 18}, {"text": "طبخ/شوي", "points": 12}, {"text": "تصوير", "points": 10}, {"text": "رياضة/جيم", "points": 8}]}, {"prompt": "شيّ ما تحب يصير في القهوة", "answers": [{"text": "بارد", "points": 30}, {"text": "ثقيل مرة", "points": 22}, {"text": "خفيف مرة", "points": 18}, {"text": "محروق", "points": 12}, {"text": "بدون سكر", "points": 10}, {"text": "منتهي", "points": 8}]}, {"prompt": "حركة تسويها إذا أحد قطعك بالطريق", "answers": [{"text": "أهدي وأتجاهل", "points": 30}, {"text": "أزمّر", "points": 22}, {"text": "أنظر له", "points": 18}, {"text": "أدعي عليه", "points": 12}, {"text": "أصوّر اللوحة", "points": 10}, {"text": "أغيّر المسار", "points": 8}]}, {"prompt": "شيّ تشتريه من البقالة آخر الليل", "answers": [{"text": "ماء", "points": 30}, {"text": "شبس/شوكولاتة", "points": 22}, {"text": "لبن", "points": 18}, {"text": "خبز", "points": 12}, {"text": "آيسكريم", "points": 10}, {"text": "شاحن/بطاريات", "points": 8}]}, {"prompt": "كلمة سعودية بمعنى (غالي)", "answers": [{"text": "غالي", "points": 30}, {"text": "سعره نار", "points": 22}, {"text": "مبالغ فيه", "points": 18}, {"text": "ما عليه خصم", "points": 12}, {"text": "مو على قدّه", "points": 10}, {"text": "فوق الميزانية", "points": 8}]}, {"prompt": "شيّ تقوله لصاحب المحل", "answers": [{"text": "آخر سعر", "points": 30}, {"text": "فيه خصم؟", "points": 22}, {"text": "جربّ لنا", "points": 18}, {"text": "بدّل لو ما ناسب", "points": 12}, {"text": "كم الضمان؟", "points": 10}, {"text": "يتوفّر بألوان؟", "points": 8}]}, {"prompt": "وقت مناسب للعب البلوت", "answers": [{"text": "الويكند", "points": 30}, {"text": "ليلة الخميس", "points": 22}, {"text": "بعد العشاء", "points": 18}, {"text": "الاستراحة", "points": 12}, {"text": "السفر", "points": 10}, {"text": "وقت المطر", "points": 8}]}, {"prompt": "شيّ يذكّرك بالمدرسة", "answers": [{"text": "الطابور", "points": 30}, {"text": "فسحة", "points": 22}, {"text": "الدفاتر", "points": 18}, {"text": "جرس", "points": 12}, {"text": "مقصف", "points": 10}, {"text": "الواجب", "points": 8}]}, {"prompt": "أكثر سبب تتأخر فيه على الدوام", "answers": [{"text": "زحمة الطريق", "points": 30}, {"text": "نمت عن المنبّه", "points": 22}, {"text": "أدور مواقف", "points": 18}, {"text": "بنزين", "points": 12}, {"text": "صبت مطر", "points": 10}, {"text": "مشوار عائلي", "points": 8}]}, {"prompt": "شيّ تشتكي منه في الشقق", "answers": [{"text": "ازعاج", "points": 30}, {"text": "مواقف قليلة", "points": 22}, {"text": "الصيانة", "points": 18}, {"text": "المكيف", "points": 12}, {"text": "الماء", "points": 10}, {"text": "المساحة", "points": 8}]}, {"prompt": "شيّ ما ينفع بدونه العزيمة", "answers": [{"text": "قهوة وشاهي", "points": 30}, {"text": "تمر", "points": 22}, {"text": "طبخ زاكي", "points": 18}, {"text": "جلسة واسعة", "points": 12}, {"text": "ضيافة/حلويات", "points": 10}, {"text": "ابتسامة", "points": 8}]}, {"prompt": "أفضل وقت للسناب", "answers": [{"text": "المساء", "points": 30}, {"text": "الظهر وقت القهوة", "points": 22}, {"text": "الصبح", "points": 18}, {"text": "العطل", "points": 12}, {"text": "وقت الفعاليات", "points": 10}, {"text": "وقت السفر", "points": 8}]}, {"prompt": "شيّ تشتريه للعيد", "answers": [{"text": "ثوب/عباية", "points": 30}, {"text": "عطر", "points": 22}, {"text": "حذاء", "points": 18}, {"text": "اكسسوارات", "points": 12}, {"text": "حلويات", "points": 10}, {"text": "هدايا", "points": 8}]}, {"prompt": "وظيفة تحبها عن بعد", "answers": [{"text": "برمجة", "points": 30}, {"text": "تصميم", "points": 22}, {"text": "خدمة عملاء", "points": 18}, {"text": "تسويق إلكتروني", "points": 12}, {"text": "ترجمة", "points": 10}, {"text": "كتابة محتوى", "points": 8}]}, {"prompt": "رياضة سهلة تبدأ فيها", "answers": [{"text": "مشي", "points": 30}, {"text": "جري", "points": 22}, {"text": "دراجة", "points": 18}, {"text": "سباحة", "points": 12}, {"text": "تمارين بيت", "points": 10}, {"text": "يوغا", "points": 8}]}, {"prompt": "شيّ ترتّبه قبل السفر", "answers": [{"text": "حجز الطيران", "points": 30}, {"text": "حجز الفندق", "points": 22}, {"text": "شنط/ملابس", "points": 18}, {"text": "تحويل عملة", "points": 12}, {"text": "تأمين سفر", "points": 10}, {"text": "خطة الأماكن", "points": 8}]}, {"prompt": "مكان مشهور للفطور بالرياض", "answers": [{"text": "المقاهي", "points": 30}, {"text": "الحارات الشعبية", "points": 22}, {"text": "وسط الرياض", "points": 18}, {"text": "البوليفارد", "points": 12}, {"text": "سلاسل عالمية", "points": 10}, {"text": "بوفيهات الفنادق", "points": 8}]}, {"prompt": "شيّ يطيح من الجيب كثير", "answers": [{"text": "مفاتيح", "points": 30}, {"text": "كاش/فكة", "points": 22}, {"text": "كوبون/فاتورة", "points": 18}, {"text": "سماعات", "points": 12}, {"text": "ولاعة", "points": 10}, {"text": "كمّامة", "points": 8}]}, {"prompt": "عادة سعودية في الضيافة", "answers": [{"text": "صُب القهوة باليمين", "points": 30}, {"text": "بتمر", "points": 22}, {"text": "ابدأ بالكبير", "points": 18}, {"text": "قول تفضل", "points": 12}, {"text": "لا تعبي الفنجان", "points": 10}, {"text": "سكر خفيف", "points": 8}]}, {"prompt": "أكثر لعبة يلعبونها العيال", "answers": [{"text": "فيفا/FC", "points": 30}, {"text": "ببجي", "points": 22}, {"text": "فورتنايت", "points": 18}, {"text": "قراند", "points": 12}, {"text": "سوكر مانجر", "points": 10}, {"text": "روبلوكس", "points": 8}]}, {"prompt": "شيّ يخلّيك تغيّر المطعم", "answers": [{"text": "زحمة", "points": 30}, {"text": "سعر غالي", "points": 22}, {"text": "تعامل سيء", "points": 18}, {"text": "نظافة ضعيفة", "points": 12}, {"text": "طعم مو ثابت", "points": 10}, {"text": "موقف بعيد", "points": 8}]}, {"prompt": "إسم دِلَع سعودي لاسم عبدالله", "answers": [{"text": "عبّود", "points": 30}, {"text": "دِلّو", "points": 22}, {"text": "عبودي", "points": 18}, {"text": "بو دَحّوم", "points": 12}, {"text": "عبّوش", "points": 10}, {"text": "عبّادة", "points": 8}]}, {"prompt": "شيّ تخاف يطيح من الشنطة", "answers": [{"text": "الجوال", "points": 30}, {"text": "المحفظة", "points": 22}, {"text": "السماعات", "points": 18}, {"text": "العطر", "points": 12}, {"text": "اللابتوب", "points": 10}, {"text": "النظارة", "points": 8}]}, {"prompt": "شيّ تسويه إذا ما لقيت موقف", "answers": [{"text": "ألفّ زيادة", "points": 30}, {"text": "موقف مدفوع", "points": 22}, {"text": "مشي شوي", "points": 18}, {"text": "أوقف بعيد", "points": 12}, {"text": "أنتظر أحد يطلع", "points": 10}, {"text": "تطبيق مواقف", "points": 8}]}, {"prompt": "كلمة سعودية تقولها للمديح", "answers": [{"text": "كفو", "points": 30}, {"text": "يا سلام", "points": 22}, {"text": "ذوق", "points": 18}, {"text": "شغل نظيف", "points": 12}, {"text": "فخم", "points": 10}, {"text": "خرافي", "points": 8}]}, {"prompt": "قسم تزوره في الديرة/القرية", "answers": [{"text": "السوق الشعبي", "points": 30}, {"text": "المزارع", "points": 22}, {"text": "الجبال", "points": 18}, {"text": "العيون/الأودية", "points": 12}, {"text": "التراث والمتاحف", "points": 10}, {"text": "المهرجانات", "points": 8}]}, {"prompt": "شيّ تشتريه من محمصة", "answers": [{"text": "قهوة عربية", "points": 30}, {"text": "بهارات", "points": 22}, {"text": "مكسرات", "points": 18}, {"text": "هيل/زعفران", "points": 12}, {"text": "قهوة مختصة", "points": 10}, {"text": "تمر", "points": 8}]}, {"prompt": "حلا مشهور عندنا", "answers": [{"text": "كيكة التمر", "points": 30}, {"text": "حلى طبقات", "points": 22}, {"text": "بسبوسة", "points": 18}, {"text": "لقيمات", "points": 12}, {"text": "تشيزكيك", "points": 10}, {"text": "زلابية", "points": 8}]}, {"prompt": "شيّ لازم يكون في الاستراحة العائلية", "answers": [{"text": "جلسة واسعة", "points": 30}, {"text": "ألعاب أطفال", "points": 22}, {"text": "شواية", "points": 18}, {"text": "مسبح", "points": 12}, {"text": "مسطح أخضر", "points": 10}, {"text": "مواقف", "points": 8}]}, {"prompt": "أكثر شيء تشتكي منه في الطيران", "answers": [{"text": "تأخير الرحلة", "points": 30}, {"text": "زحمة البوردنق", "points": 22}, {"text": "كرسي ضيّق", "points": 18}, {"text": "الأكل", "points": 12}, {"text": "العفش", "points": 10}, {"text": "الطفل اللي يبكي", "points": 8}]}, {"prompt": "شيّ يخلّيك تسافر داخل السعودية", "answers": [{"text": "أجواء", "points": 30}, {"text": "فعاليات", "points": 22}, {"text": "عروض فنادق", "points": 18}, {"text": "قرب المسافة", "points": 12}, {"text": "زيارة أهل", "points": 10}, {"text": "طبيعة", "points": 8}]}, {"prompt": "شيّ تستخدمه كل يوم بالمطبخ", "answers": [{"text": "قدر/مقلاة", "points": 30}, {"text": "سكاكين", "points": 22}, {"text": "ملعقة خشب", "points": 18}, {"text": "لوح تقطيع", "points": 12}, {"text": "مايكرويف", "points": 10}, {"text": "غلاية", "points": 8}]}, {"prompt": "إذا أحد قالك (وينك؟) وش ترد؟", "answers": [{"text": "جاي بالطريق", "points": 30}, {"text": "بعد شوي", "points": 22}, {"text": "قدّامك", "points": 18}, {"text": "بالدوام", "points": 12}, {"text": "بالبيت", "points": 10}, {"text": "أرسل لك", "points": 8}]}, {"prompt": "شيّ تسويه إذا انقطعت الكهرباء", "answers": [{"text": "أشغّل كشاف", "points": 30}, {"text": "أفتح الشبابيك", "points": 22}, {"text": "أطلع للسيارة", "points": 18}, {"text": "أكلم الشركة", "points": 12}, {"text": "أنتظر ترجع", "points": 10}, {"text": "أشتري بطارية", "points": 8}]}, {"prompt": "أفضل وقت لزيارة العلا", "answers": [{"text": "الشتاء", "points": 30}, {"text": "الخريف", "points": 22}, {"text": "الربيع", "points": 18}, {"text": "وقت الفعاليات", "points": 12}, {"text": "نهاية الأسبوع", "points": 10}, {"text": "الصبح", "points": 8}]}, {"prompt": "شيّ تقوله قبل ما تقفل المكالمة", "answers": [{"text": "مع السلامة", "points": 30}, {"text": "أشوفك على خير", "points": 22}, {"text": "توصل بالسلامة", "points": 18}, {"text": "يعطيك العافية", "points": 12}, {"text": "تكفى لا تنسى", "points": 10}, {"text": "بالتوفيق", "points": 8}]}, {"prompt": "أكثر شيّ يضيّع الوقت بالجوال", "answers": [{"text": "سناب", "points": 30}, {"text": "تيك توك", "points": 22}, {"text": "تويتر/X", "points": 18}, {"text": "يوتيوب", "points": 12}, {"text": "إنستقرام", "points": 10}, {"text": "ألعاب", "points": 8}]}, {"prompt": "شيّ تسويه إذا جاك ضيف فجأة", "answers": [{"text": "أرتب سريع", "points": 30}, {"text": "قهوة سريعة", "points": 22}, {"text": "أطلب من مطعم", "points": 18}, {"text": "أفتح المكيف", "points": 12}, {"text": "أقدّم تمر/حلويات", "points": 10}, {"text": "أعتذر إذا مشغول", "points": 8}]}, {"prompt": "شيّ تسمعه في الورشة", "answers": [{"text": "غيّر الزيت", "points": 30}, {"text": "فحص كمبيوتر", "points": 22}, {"text": "كفرات", "points": 18}, {"text": "توازن/ترصيص", "points": 12}, {"text": "فحمات", "points": 10}, {"text": "فلتر", "points": 8}]}, {"prompt": "فطور خفيف قبل الدوام", "answers": [{"text": "ساندوتش", "points": 30}, {"text": "زبادي", "points": 22}, {"text": "بيضة", "points": 18}, {"text": "كورنفلكس", "points": 12}, {"text": "كرواسون", "points": 10}, {"text": "فاكهة", "points": 8}]}, {"prompt": "شيّ تعلّمه ولدك بدري", "answers": [{"text": "السلام", "points": 30}, {"text": "الترتيب", "points": 22}, {"text": "الصدق", "points": 18}, {"text": "الاستئذان", "points": 12}, {"text": "حفظ الدعاء", "points": 10}, {"text": "العطاء", "points": 8}]}, {"prompt": "شيّ يجيك مع الطلب أونلاين", "answers": [{"text": "فاتورة", "points": 30}, {"text": "قماش/تغليف", "points": 22}, {"text": "هديّة/عينة", "points": 18}, {"text": "كوبون خصم", "points": 12}, {"text": "تعليمات رجوع", "points": 10}, {"text": "شكراً", "points": 8}]}, {"prompt": "مصطلح سعودي للفلوس", "answers": [{"text": "قروش", "points": 30}, {"text": "ريالات", "points": 22}, {"text": "مصاري", "points": 18}, {"text": "فلوس", "points": 12}, {"text": "دراهم", "points": 10}, {"text": "ميزانية", "points": 8}]}, {"prompt": "أكثر سبب ترجع فيه منتج", "answers": [{"text": "مقاس غلط", "points": 30}, {"text": "جودة سيئة", "points": 22}, {"text": "شكل غير", "points": 18}, {"text": "تأخير الشحن", "points": 12}, {"text": "مكسور", "points": 10}, {"text": "سعر نزل", "points": 8}]}, {"prompt": "شيّ ما تحب يبرد", "answers": [{"text": "قهوة", "points": 30}, {"text": "شوربة", "points": 22}, {"text": "شاهي", "points": 18}, {"text": "فطائر", "points": 12}, {"text": "كبسة", "points": 10}, {"text": "برياني", "points": 8}]}, {"prompt": "شيّ تسمعه عند أبو يمن (المخباز)", "answers": [{"text": "رغيفين صامولي", "points": 30}, {"text": "تميس حار", "points": 22}, {"text": "جبن/عسل", "points": 18}, {"text": "انتظر شوي", "points": 12}, {"text": "خلص", "points": 10}, {"text": "تفضل", "points": 8}]}, {"prompt": "شيّ يطيح من يدك كثير", "answers": [{"text": "الجوال", "points": 30}, {"text": "المفاتيح", "points": 22}, {"text": "الكوب", "points": 18}, {"text": "الريموت", "points": 12}, {"text": "السماعة", "points": 10}, {"text": "المحفظة", "points": 8}]}, {"prompt": "إذا قلت (أبي شيء من البقالة؟) وش يتكرر؟", "answers": [{"text": "ماء", "points": 30}, {"text": "شبس/شوكولاته", "points": 22}, {"text": "خبز", "points": 18}, {"text": "لبن", "points": 12}, {"text": "بيض", "points": 10}, {"text": "رغبة مفاجئة", "points": 8}]}, {"prompt": "وظيفة تحلم فيها الصغار", "answers": [{"text": "طيّار", "points": 30}, {"text": "شرطي", "points": 22}, {"text": "طبيب", "points": 18}, {"text": "معلّم", "points": 12}, {"text": "لاعب كرة", "points": 10}, {"text": "مبرمج ألعاب", "points": 8}]}, {"prompt": "شيّ يتكرّر في العزايم", "answers": [{"text": "رز ولحم", "points": 30}, {"text": "قهوة وشاهي", "points": 22}, {"text": "حلويات", "points": 18}, {"text": "عصيرات", "points": 12}, {"text": "تصوير", "points": 10}, {"text": "سوالف", "points": 8}]}, {"prompt": "هديّة بسيطة للصاحب", "answers": [{"text": "عطر", "points": 30}, {"text": "قهوة", "points": 22}, {"text": "شوكولاتة", "points": 18}, {"text": "كوب/مج", "points": 12}, {"text": "شمعة", "points": 10}, {"text": "بطاقة هدية", "points": 8}]}, {"prompt": "شيّ تقول عنه (قديم بس له هيبة)", "answers": [{"text": "اللاندكروزر القديم", "points": 30}, {"text": "الراديو", "points": 22}, {"text": "الفيلّا التراثية", "points": 18}, {"text": "الساعة الكلاسيكية", "points": 12}, {"text": "الفناجيل", "points": 10}, {"text": "المِشلح", "points": 8}]}, {"prompt": "مكان تطلب منه قهوة وأنت بالسيارة", "answers": [{"text": "درايف ثرو", "points": 30}, {"text": "كافي صغير", "points": 22}, {"text": "كشك", "points": 18}, {"text": "محطة بنزين", "points": 12}, {"text": "بقالة", "points": 10}, {"text": "عربة قهوة", "points": 8}]}, {"prompt": "شيّ لازم في شنطة المدرسة", "answers": [{"text": "دفاتر", "points": 30}, {"text": "أقلام", "points": 22}, {"text": "وجبة", "points": 18}, {"text": "ماء", "points": 12}, {"text": "آلة حاسبة", "points": 10}, {"text": "منديل", "points": 8}]}, {"prompt": "سبب تتصل على 911/الطوارئ", "answers": [{"text": "حادث", "points": 30}, {"text": "حريق", "points": 22}, {"text": "سرقة", "points": 18}, {"text": "مشاجرة", "points": 12}, {"text": "إسعاف", "points": 10}, {"text": "اشتباه", "points": 8}]}, {"prompt": "شيّ في المجلس السعودي", "answers": [{"text": "سجادة", "points": 30}, {"text": "كنب أرضي/مساند", "points": 22}, {"text": "طاولة قهوة", "points": 18}, {"text": "مباخر", "points": 12}, {"text": "تحف/سدو", "points": 10}, {"text": "ثريا", "points": 8}]}, {"prompt": "أفلام شايعة نشوفها كثير", "answers": [{"text": "أكشن", "points": 30}, {"text": "كوميدي", "points": 22}, {"text": "دراما", "points": 18}, {"text": "رعب", "points": 12}, {"text": "خيال علمي", "points": 10}, {"text": "وثائقي", "points": 8}]}, {"prompt": "شيّ يذكّرك بالطفولة", "answers": [{"text": "كرتون", "points": 30}, {"text": "ألعاب فيديو", "points": 22}, {"text": "الحارة", "points": 18}, {"text": "سندوتش المدرسة", "points": 12}, {"text": "العيدية", "points": 10}, {"text": "الطائرة الورق", "points": 8}]}, {"prompt": "شيّ تسويه إذا زهقان", "answers": [{"text": "أطلع مع الشباب", "points": 30}, {"text": "أتمشى", "points": 22}, {"text": "سينما", "points": 18}, {"text": "ألعاب", "points": 12}, {"text": "نوم", "points": 10}, {"text": "طبخ/قهوة", "points": 8}]}, {"prompt": "مصطلح نقوله للشيء الحلو مرّة", "answers": [{"text": "يهبّل", "points": 30}, {"text": "نار", "points": 22}, {"text": "فلّة", "points": 18}, {"text": "كشخة", "points": 12}, {"text": "أسطوري", "points": 10}, {"text": "حسب الطلب", "points": 8}]}, {"prompt": "شيّ يضبط الجو في البيت", "answers": [{"text": "إضاءات", "points": 30}, {"text": "موسيقى هادية", "points": 22}, {"text": "ريحة بخور", "points": 18}, {"text": "نباتات", "points": 12}, {"text": "ترتيب", "points": 10}, {"text": "مكيف مضبوط", "points": 8}]}, {"prompt": "أكثر سبب تخفّض الصوت عند الإشارة", "answers": [{"text": "مكالمة", "points": 30}, {"text": "شرطة قريبة", "points": 22}, {"text": "احترام", "points": 18}, {"text": "مكان سكني", "points": 12}, {"text": "عيال نايمين", "points": 10}, {"text": "دعاء", "points": 8}]}, {"prompt": "شيّ تتمنّى ينتهي بسرعة", "answers": [{"text": "الزحمة", "points": 30}, {"text": "الدوام", "points": 22}, {"text": "الطابور", "points": 18}, {"text": "الاختبار", "points": 12}, {"text": "الصيانة", "points": 10}, {"text": "الفاتورة", "points": 8}]}, {"prompt": "شيّ يتعب وقت الانتقال لبيت جديد", "answers": [{"text": "التغليف", "points": 30}, {"text": "نقل العفش", "points": 22}, {"text": "تنظيف", "points": 18}, {"text": "تركيب الستائر", "points": 12}, {"text": "دهان", "points": 10}, {"text": "المطبخ", "points": 8}]}, {"prompt": "أكثر برنامج نفك فيه زحمة الملل", "answers": [{"text": "يوتيوب", "points": 30}, {"text": "تيك توك", "points": 22}, {"text": "سناب", "points": 18}, {"text": "نتفلكس", "points": 12}, {"text": "تويتر/X", "points": 10}, {"text": "بودكاست", "points": 8}]}, {"prompt": "كلمة سعودية تعني (ما عليه)", "answers": [{"text": "عادي", "points": 30}, {"text": "بسيطة", "points": 22}, {"text": "تهون", "points": 18}, {"text": "حياك", "points": 12}, {"text": "ولا يهمك", "points": 10}, {"text": "على البركة", "points": 8}]}, {"prompt": "شيّ يشغّلك عن الدايت", "answers": [{"text": "عزايم", "points": 30}, {"text": "سفر", "points": 22}, {"text": "عمل", "points": 18}, {"text": "سهر", "points": 12}, {"text": "توتّر", "points": 10}, {"text": "مطاعم جديدة", "points": 8}]}, {"prompt": "سبب تغيّر عليه خطة الويكند", "answers": [{"text": "مطر", "points": 30}, {"text": "زحمة", "points": 22}, {"text": "ظروف عائلية", "points": 18}, {"text": "دوام طاري", "points": 12}, {"text": "مرض", "points": 10}, {"text": "انتهت التذاكر", "points": 8}]}, {"prompt": "شيّ تتفقّد بطاريته دايم", "answers": [{"text": "الجوال", "points": 30}, {"text": "الباور بانك", "points": 22}, {"text": "اللاب توب", "points": 18}, {"text": "السيارة", "points": 12}, {"text": "الساعة", "points": 10}, {"text": "الراوتر", "points": 8}]}, {"prompt": "شيّ تقول عنه (ينفع هدية للجميع)", "answers": [{"text": "عطر", "points": 30}, {"text": "قهوة", "points": 22}, {"text": "شوكولاتة", "points": 18}, {"text": "بطاقة هدية", "points": 12}, {"text": "ورد", "points": 10}, {"text": "مصحف", "points": 8}]}, {"prompt": "شيّ لازم تسويه قبل الاختبار", "answers": [{"text": "مذاكرة", "points": 30}, {"text": "نوم كفاية", "points": 22}, {"text": "فطور", "points": 18}, {"text": "أجهز أدواتي", "points": 12}, {"text": "أترك الجوال", "points": 10}, {"text": "أدعي", "points": 8}]}, {"prompt": "أكثر شخص تستأذنه للطلعة", "answers": [{"text": "الأم", "points": 30}, {"text": "الأب", "points": 22}, {"text": "الزوج/الزوجة", "points": 18}, {"text": "الأخ/الأخت", "points": 12}, {"text": "المدير", "points": 10}, {"text": "الجد/الجدة", "points": 8}]}, {"prompt": "شيّ تقوله للي يصوّر أكل", "answers": [{"text": "يلا كل يبرد", "points": 30}, {"text": "صوّر بسرعة", "points": 22}, {"text": "ترى شكله يجنن", "points": 18}, {"text": "عطني صورة", "points": 12}, {"text": "وين المطعم", "points": 10}, {"text": "بالعافية", "points": 8}]}, {"prompt": "شيّ يخلّيك تكره المطار", "answers": [{"text": "تفتيش طويل", "points": 30}, {"text": "تأخير", "points": 22}, {"text": "ضياع العفش", "points": 18}, {"text": "صف الجوازات", "points": 12}, {"text": "بوابة بعيدة", "points": 10}, {"text": "أسعار غالية", "points": 8}]}, {"prompt": "أكلة تتغيّر من منطقة لمنطقة", "answers": [{"text": "كبسة", "points": 30}, {"text": "مفطح", "points": 22}, {"text": "جريش", "points": 18}, {"text": "قرصان", "points": 12}, {"text": "مندي", "points": 10}, {"text": "مطبق", "points": 8}]}, {"prompt": "أشهر تحلية بعد الغداء", "answers": [{"text": "شاي", "points": 30}, {"text": "قهوة", "points": 22}, {"text": "فاكهة", "points": 18}, {"text": "حلا بسيط", "points": 12}, {"text": "نوم قيلولة", "points": 10}, {"text": "لا شيء", "points": 8}]}, {"prompt": "شيّ تسويه أول ما ترجع البيت", "answers": [{"text": "أغسل يدي", "points": 30}, {"text": "أشغّل المكيف", "points": 22}, {"text": "أبدّل ملابسي", "points": 18}, {"text": "أحيّي الأهل", "points": 12}, {"text": "أحط الشنطة", "points": 10}, {"text": "أفتح الجوال", "points": 8}]}];
+  const QUESTIONS_ARRAY = JSON.parse(JSON.stringify(DEFAULT_QUESTIONS));
 
-const team = { A: { name: 'الفريق الأحمر', score: 0 }, B: { name: 'الفريق الأزرق', score: 0 } };
-
-const qListEl = document.getElementById('questionsList');
-const qDisplay = document.getElementById('qDisplay');
-const qMeta = document.getElementById('qMeta');
-const answersGrid = document.getElementById('answersGrid');
-const roundStateEl = document.getElementById('roundState');
-
-document.getElementById('teamAName').addEventListener('input', e => {
-  team.A.name = e.target.value; document.getElementById('teamADisplay').textContent = e.target.value || 'الفريق أ';
-});
-document.getElementById('teamBName').addEventListener('input', e => {
-  team.B.name = e.target.value; document.getElementById('teamBDisplay').textContent = e.target.value || 'الفريق ب';
-});
-
-document.getElementById('setTurnA').addEventListener('click', ()=> {
-  currentAnsweringTeam = 'A';
-  roundStateEl.textContent = `جاهز - دور ${team.A.name}`;
-});
-document.getElementById('setTurnB').addEventListener('click', ()=> {
-  currentAnsweringTeam = 'B';
-  roundStateEl.textContent = `جاهز - دور ${team.B.name}`;
-});
-
-function renderQuestions(){
-  qListEl.innerHTML='';
-  questions.forEach((qq,i)=>{
-    const d = document.createElement('div'); d.className='question-item';
-    d.innerHTML = `<div style="font-weight:700">${qq.q}</div><div style="color:var(--muted);font-size:13px">${qq.answers.length} إجابات</div>`;
-    d.addEventListener('click', ()=> startRound(i));
-    qListEl.appendChild(d);
-  });
-}
-
-function parseAnswers(text){
-  const parts = text.split(',').map(s=>s.trim()).filter(Boolean);
-  return parts.map(p=>{
-    const [t,pts] = p.split('|').map(x=>x && x.trim());
-    return {text: t||'—', pts: Number(pts||0)}
-  })
-}
-
-document.getElementById('addQ').addEventListener('click', ()=>{
-  const q = document.getElementById('qText').value.trim();
-  const a = document.getElementById('ansText').value.trim();
-  if(!q || !a){alert('املأ السؤال و الإجابات');return}
-  questions.push({q, answers: parseAnswers(a)});
-  document.getElementById('qText').value=''; document.getElementById('ansText').value='';
-  renderQuestions();
-});
-
-document.getElementById('importSample').addEventListener('click', ()=>{
-  questions = sampleQuestions(); renderQuestions(); alert('تم تحميل أسئلة نموذجية. اضغط على أي سؤال لبدء الجولة.');
-});
-
-function sampleQuestions(){
-  return [
-    { q: "شي تلقاه في المجلس", answers: [{text:"دلة قهوة",pts:30},{text:"تمر",pts:20},{text:"مساند",pts:15},{text:"سجاد",pts:10},{text:"بخور",pts:8},{text:"تلفزيون",pts:5}] },
-    { q: "أكلة شعبية سعودية", answers: [{text:"كبسة",pts:35},{text:"جريش",pts:20},{text:"قرصان",pts:15},{text:"مندي",pts:12},{text:"مراصيع",pts:8}] },
-    { q: "شي تستخدمه وقت المطر", answers: [{text:"مظلة",pts:25},{text:"مشلح",pts:20},{text:"جزمة مطر",pts:15},{text:"شماغ",pts:10},{text:"قفازات",pts:5}] },
-    { q: "شي في السيارة", answers: [{text:"مقود",pts:25},{text:"مكيف",pts:20},{text:"مرايا",pts:15},{text:"إطارات",pts:10},{text:"مسجل",pts:5}] },
-    { q: "مكان تروح له مع العائلة", answers: [{text:"مطعم",pts:30},{text:"منتزه",pts:25},{text:"مول",pts:20},{text:"البر",pts:15},{text:"شاليه",pts:10}] },
-    { q: "شي تاكله في الفطور", answers: [{text:"فول",pts:25},{text:"تميس",pts:20},{text:"بيض",pts:15},{text:"شاي",pts:10},{text:"جبن",pts:8}] },
-    { q: "شي تستخدمه في المطبخ", answers: [{text:"قدر",pts:25},{text:"ملاعق",pts:20},{text:"فرن",pts:15},{text:"خلاط",pts:10},{text:"سكين",pts:8}] },
-    { q: "شي تسويه في العيد", answers: [{text:"تلبس جديد",pts:25},{text:"توزع عيدية",pts:20},{text:"تزور الأهل",pts:15},{text:"تصور",pts:10},{text:"تأكل حلويات",pts:8}] },
-    { q: "وسيلة مواصلات", answers: [{text:"سيارة",pts:30},{text:"دباب",pts:20},{text:"باص",pts:15},{text:"طيارة",pts:10},{text:"قطار",pts:8}] },
-    { q: "شي تخليه في الثلاجة", answers: [{text:"ماء",pts:25},{text:"عصير",pts:20},{text:"حليب",pts:15},{text:"فاكهة",pts:10},{text:"بيض",pts:8}] },
-    { q: "نشاط تسويه في البر", answers: [{text:"تشوي",pts:25},{text:"تفرش بساط",pts:20},{text:"تركب دباب",pts:15},{text:"تصيد",pts:10},{text:"تشرب شاي",pts:8}] },
-    { q: "شي تشوفه في السماء", answers: [{text:"شمس",pts:25},{text:"قمر",pts:20},{text:"نجوم",pts:15},{text:"غيوم",pts:10},{text:"طيور",pts:8}] },
-    { q: "حيوان أليف", answers: [{text:"قط",pts:25},{text:"كلب",pts:20},{text:"عصفور",pts:15},{text:"سمك",pts:10},{text:"أرنب",pts:8}] },
-    { q: "شي تلاقيه في الشارع", answers: [{text:"سيارات",pts:25},{text:"إشارات مرور",pts:20},{text:"محلات",pts:15},{text:"أعمدة إنارة",pts:10},{text:"أشجار",pts:8}] },
-    { q: "شي تشيله معك للسفر", answers: [{text:"شنطة",pts:25},{text:"جواز",pts:20},{text:"ملابس",pts:15},{text:"فلوس",pts:10},{text:"شاحن",pts:8}] },
-    { q: "شي يبردك بالصيف", answers: [{text:"مكيف",pts:25},{text:"مروحة",pts:20},{text:"عصير بارد",pts:15},{text:"سباحة",pts:10},{text:"ثلج",pts:8}] },
-    { q: "شي يخوف الأطفال", answers: [{text:"ظلام",pts:25},{text:"صراصير",pts:20},{text:"كلاب",pts:15},{text:"أصوات عالية",pts:10},{text:"أشباح",pts:8}] },
-    { q: "شي موجود في الحديقة", answers: [{text:"أشجار",pts:25},{text:"زهور",pts:20},{text:"ألعاب",pts:15},{text:"مقاعد",pts:10},{text:"نافورة",pts:8}] },
-    { q: "شي فيه أزرار", answers: [{text:"ريموت",pts:25},{text:"جوال",pts:20},{text:"كمبيوتر",pts:15},{text:"مصعد",pts:10},{text:"فرن",pts:8}] },
-    { q: "شي له عجلات", answers: [{text:"سيارة",pts:25},{text:"دراجة",pts:20},{text:"كرسي متحرك",pts:15},{text:"عربة تسوق",pts:10},{text:"سكوتر",pts:8}] },
-    { q: "شي تحتاجه وقت الطبخ", answers: [{text:"غاز",pts:25},{text:"زيت",pts:20},{text:"ملح",pts:15},{text:"خضار",pts:10},{text:"بهارات",pts:8}] },
-    { q: "شي تشوفه في البحر", answers: [{text:"ماء",pts:25},{text:"أسماك",pts:20},{text:"قوارب",pts:15},{text:"أمواج",pts:10},{text:"شعب مرجانية",pts:8}] },
-    { q: "شي له رائحة قوية", answers: [{text:"بصل",pts:25},{text:"ثوم",pts:20},{text:"عطر",pts:15},{text:"بنزين",pts:10},{text:"بخور",pts:8}] },
-    { q: "مدينة سعودية", answers: [{text:"الرياض",pts:25},{text:"جدة",pts:20},{text:"مكة",pts:15},{text:"الدمام",pts:10},{text:"الطائف",pts:8}] }
-  ];
-}
-
-/* -------------------------
-  الأصوات MP3 (ضع الملفات في نفس المجلد)
-   ------------------------- */
-const correctSound = new Audio('correct.mp3');
-const wrongSound = new Audio('wrong.mp3');
-const applauseSound = new Audio('applause.mp3');
-const bgMusic = new Audio('bg.mp3');
-bgMusic.loop = true;
-bgMusic.volume = 0.28;
-
-// السماح بتشغيل الصوت بعد تفاعل المستخدم
-document.addEventListener('click', ()=> {
-  if (bgMusic.paused) {
-    bgMusic.play().catch(()=>{/* بعض المتصفحات تمنع التشغيل التلقائي حتى تفاعل */});
-  }
-  // محاولة لتمكين الأصوات
-  [correctSound, wrongSound, applauseSound].forEach(s => { try { s.volume = s.volume || 1 } catch(e){} });
-});
-
-function tryPlay(sound){
-  sound.currentTime = 0;
-  sound.play().catch(()=>{/* يتوقف عن اللعب إذا لم يُسمح */});
-}
-
-/* -------------------------
-  عرض الجولة و الإجابات
-   ------------------------- */
-function startRound(index){
-  current.index = index; current.revealed = []; current.strikes = 0; current.stealMode = false; current.stealBy = null; current.boardPoints = 0;
-  const q = questions[index];
-  qDisplay.textContent = q.q;
-  qMeta.textContent = `عدد الإجابات: ${q.answers.length}`;
-  renderAnswers();
-  roundStateEl.textContent = `جاري اللعب - دور ${ team[currentAnsweringTeam].name }`;
-  document.getElementById('stealSuccess').classList.add('hidden');
-}
-
-function renderAnswers(){
-  answersGrid.innerHTML='';
-  if(current.index===-1) return;
-  const arr = questions[current.index].answers;
-  arr.forEach((a,i)=>{
-    const el = document.createElement('div'); el.className='answer';
-    if(current.revealed.includes(i)) el.classList.add('revealed');
-    el.innerHTML = `<div class="txt">${ current.revealed.includes(i) ? a.text : '—' }</div><div class="pts">${ current.revealed.includes(i) ? a.pts : '' }</div>`;
-    el.addEventListener('click', ()=> toggleReveal(i));
-    answersGrid.appendChild(el);
-  })
-}
-
-function toggleReveal(i){
-  if(current.index===-1) return;
-  if(!current.revealed.includes(i)){
-    current.revealed.push(i);
-    tryPlay(correctSound);
-    flashGreen();
-    // لو كُشف كل الإجابات — تصفيق و كونفيتي
-    if(current.revealed.length === questions[current.index].answers.length){
-      tryPlay(applauseSound);
-      throwConfetti();
-    }
-  } else {
-    current.revealed = current.revealed.filter(x=>x!==i);
-  }
-  renderAnswers();
-}
-
-/* reveal next / flip all / clear */
-document.getElementById('revealNext').addEventListener('click', ()=>{
-  if(current.index===-1) return alert('اختر سؤالاً أولاً');
-  const total = questions[current.index].answers.length;
-  for(let i=0;i<total;i++){
-    if(!current.revealed.includes(i)){ current.revealed.push(i); tryPlay(correctSound); break; }
-  }
-  if(current.revealed.length === questions[current.index].answers.length){ tryPlay(applauseSound); throwConfetti(); }
-  renderAnswers();
-});
-
-document.getElementById('flipAll').addEventListener('click', ()=>{
-  if(current.index===-1) return alert('اختر سؤالاً أولاً');
-  current.revealed = questions[current.index].answers.map((_,i)=>i);
-  renderAnswers();
-  tryPlay(applauseSound);
-  throwConfetti();
-});
-
-document.getElementById('clearReveal').addEventListener('click', ()=>{
-  current.revealed = []; renderAnswers(); roundStateEl.textContent='جاهز';
-});
-
-/* previous reveal */
-document.getElementById('prevReveal').addEventListener('click', ()=>{
-  if(current.revealed.length===0) return;
-  current.revealed.pop(); renderAnswers();
-});
-
-/* -------------------------
-  نقاط و أخطاء + سترايك / جولة السرقة
-   ------------------------- */
-function updateScores(){ document.getElementById('teamAScore').textContent = team.A.score; document.getElementById('teamBScore').textContent = team.B.score }
-
-document.getElementById('awardA').addEventListener('click', ()=>{
-  if(current.index===-1) return alert('لا جولة');
-  // إذا نحن في جولة سرقة والجهة السارقة هي A -> نعتبرها نجاح سرقة
-  if(current.stealMode && current.stealBy === 'A'){
-    // نجاح السرقة للفريق A
-    tryPlay(correctSound); flashGreen();
-    team.A.score += current.boardPoints;
-    updateScores();
-    alert(`${team.A.name} نجح في السرقة وحصل على ${current.boardPoints} نقطة`);
-    current.stealMode = false;
-    roundStateEl.textContent = 'انتهت الجولة';
-    document.getElementById('stealSuccess').classList.add('hidden');
-    return;
-  }
-  // العادة: نمنح نقاط الإجابات المكشوفة
-  const pts = current.revealed.reduce((s,i)=> s + (questions[current.index].answers[i].pts||0),0);
-  team.A.score += pts; updateScores();
-  tryPlay(applauseSound); throwConfetti();
-  alert(`أعطيت ${pts} نقطة لـ ${team.A.name}`);
-});
-
-document.getElementById('awardB').addEventListener('click', ()=>{
-  if(current.index===-1) return alert('لا جولة');
-  // إذا نحن في جولة سرقة والجهة السارقة هي B -> نعتبرها نجاح سرقة
-  if(current.stealMode && current.stealBy === 'B'){
-    tryPlay(correctSound); flashGreen();
-    team.B.score += current.boardPoints;
-    updateScores();
-    alert(`${team.B.name} نجح في السرقة وحصل على ${current.boardPoints} نقطة`);
-    current.stealMode = false;
-    roundStateEl.textContent = 'انتهت الجولة';
-    document.getElementById('stealSuccess').classList.add('hidden');
-    return;
-  }
-  const pts = current.revealed.reduce((s,i)=> s + (questions[current.index].answers[i].pts||0),0);
-  team.B.score += pts; updateScores();
-  tryPlay(applauseSound); throwConfetti();
-  alert(`أعطيت ${pts} نقطة لـ ${team.B.name}`);
-});
-
-document.getElementById('strike').addEventListener('click', ()=>{
-  if(current.index===-1) return alert('لا جولة');
-  // إذا في جولة سرقة حاليا => هذه ضربة للفريق السارِق (فشل السرقة)
-  if(current.stealMode){
-    tryPlay(wrongSound);
-    // الفشل: نقاط اللوح تذهب للفريق الأصلي (الذي أخذ 3 سترايك)
-    const original = (current.stealBy === 'A') ? 'B' : 'A'; // مَن ارتكب 3 سترايك هو الآخر
-    team[original].score += current.boardPoints;
-    updateScores();
-    alert(`${team[current.stealBy].name} أخفق في السرقة. ${team[original].name} يحتفظ بـ ${current.boardPoints} نقطة`);
-    current.stealMode = false;
-    current.stealBy = null;
-    current.boardPoints = 0;
-    roundStateEl.textContent = 'انتهت الجولة';
-    document.getElementById('stealSuccess').classList.add('hidden');
-    return;
-  }
-
-  // زيادة سترايك للفريق الذي يجيب الآن
-  current.strikes = (current.strikes || 0) + 1;
-  tryPlay(wrongSound);
-  roundStateEl.textContent = `أخطاء: ${current.strikes} — دور ${team[currentAnsweringTeam].name}`;
-  if(current.strikes >= 3){
-    // تفعيل جولة السرقة: الفريق الآخر يحصل على فرصة السرقة
-    const other = (currentAnsweringTeam === 'A') ? 'B' : 'A';
-    current.stealMode = true;
-    current.stealBy = other;
-    // نقاط اللوح = مجموع نقاط كل الإجابات على اللوح
-    current.boardPoints = questions[current.index].answers.reduce((s,a)=> s + (a.pts||0), 0);
-    roundStateEl.textContent = `جولة السرقة - دور ${team[other].name}`;
-    alert(`3 سترايك! الآن دور ${team[other].name} في جولة السرقة (القيمة: ${current.boardPoints} نقطة).`);
-    document.getElementById('stealSuccess').classList.remove('hidden');
-  }
-});
-
-/* زر نجاح السرقة (يكفي للمضيف يضغطه لو الفريق السارق جاوب صح) */
-document.getElementById('stealSuccess').addEventListener('click', ()=>{
-  if(!current.stealMode) return;
-  const winner = current.stealBy;
-  tryPlay(correctSound); flashGreen();
-  team[winner].score += current.boardPoints;
-  updateScores();
-  alert(`${team[winner].name} نجحوا في السرقة وحصلوا على ${current.boardPoints} نقطة`);
-  current.stealMode = false;
-  current.stealBy = null;
-  current.boardPoints = 0;
-  roundStateEl.textContent = 'انتهت الجولة';
-  document.getElementById('stealSuccess').classList.add('hidden');
-});
-
-/* -------------------------
-  أزرار مساعدة: جولة جديدة و إعادة نقاط
-   ------------------------- */
-document.getElementById('newRound').addEventListener('click', ()=>{
-  current.index=-1; current.revealed=[]; current.strikes=0; current.stealMode=false; current.stealBy=null; current.boardPoints=0;
-  qDisplay.textContent='اضغط على سؤال من الجهة اليسرى لبدء الجولة'; qMeta.textContent='—'; answersGrid.innerHTML=''; roundStateEl.textContent='جاهز';
-  document.getElementById('stealSuccess').classList.add('hidden');
-});
-
-document.getElementById('resetScores').addEventListener('click', ()=>{ if(confirm('إعادة النقاط؟')){team.A.score=0;team.B.score=0;updateScores()} });
-
-/* تحميل عينات عند التشغيل */
-questions = sampleQuestions(); renderQuestions(); updateScores();
-
-/* -------------------------
-  فلاش أخضر
-   ------------------------- */
-function flashGreen(){
-  document.body.classList.add('flash-green');
-  setTimeout(()=>document.body.classList.remove('flash-green'), 350);
-}
-
-/* -------------------------
-  Confetti (كانفاس بسيط)
-   ------------------------- */
-const confCanvas = document.getElementById('confetti');
-const ctx = confCanvas.getContext('2d');
-let confettiPieces = [];
-function resizeCanvas(){ confCanvas.width = window.innerWidth; confCanvas.height = window.innerHeight; }
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
-function throwConfetti(){
-  const count = 90;
-  for(let i=0;i<count;i++) confettiPieces.push(createPiece());
-  if(!animating){ animating=true; requestAnimationFrame(drawConfetti); }
-}
-function createPiece(){
-  const w = Math.random()*10 + 6;
-  const h = Math.random()*6 + 4;
-  return {
-    x: Math.random()*confCanvas.width,
-    y: -20 - Math.random()*confCanvas.height*0.1,
-    vx: (Math.random()-0.5)*4,
-    vy: Math.random()*3 + 2,
-    rot: Math.random()*360,
-    dang: (Math.random()-0.5)*0.2,
-    w, h,
-    color: `hsl(${Math.floor(Math.random()*360)}, 70%, 60%)`,
-    life: 0
-  }
-}
-let animating = false;
-function drawConfetti(){
-  ctx.clearRect(0,0,confCanvas.width, confCanvas.height);
-  for(let i=confettiPieces.length-1;i>=0;i--){
-    const p = confettiPieces[i];
-    p.x += p.vx; p.y += p.vy; p.vy += 0.06; p.rot += p.dang * 10; p.life++;
-    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot * Math.PI / 180);
-    ctx.fillStyle = p.color; ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
-    ctx.restore();
-    if(p.y > confCanvas.height + 50 || p.life > 400) confettiPieces.splice(i,1);
-  }
-  if(confettiPieces.length>0) requestAnimationFrame(drawConfetti); else animating=false;
-}
-
-/* -------------------------
-  حفظ / تحميل JSON لأسئلة
-   ------------------------- */
-function exportJSON(){
-  const data = JSON.stringify(questions, null, 2);
-  const blob = new Blob([data], {type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href=url; a.download='mkhawir_questions.json';
-  a.click(); URL.revokeObjectURL(url);
-}
-document.getElementById('exportBtn').addEventListener('click', exportJSON);
-
-document.getElementById('importFile').addEventListener('change', (e)=>{
-  const file = e.target.files[0];
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    try {
-      const parsed = JSON.parse(ev.target.result);
-      if(Array.isArray(parsed)) { questions = parsed; renderQuestions(); alert('تم استيراد الأسئلة'); }
-      else alert('الملف غير صحيح');
-    } catch(err){ alert('خطأ في قراءة الملف'); }
+  // State
+  let questions = QUESTIONS_ARRAY;
+  let qIndex = 0;
+  let revealed = {};
+  let multiplier = 1;
+  let roundPot = 0;
+  let activeTeam = 'A';
+  let stealMode = false;
+  const team = {
+    A: { name:'فريق A', score:0, strikes:0 },
+    B: { name:'فريق B', score:0, strikes:0 }
   };
-  reader.readAsText(file);
-});
+  // Elements
+  const el = (id)=>document.getElementById(id);
+  const answersWrap = el('answers');
+  const qtext = el('qtext');
+  const qsmall = el('qsmall');
+  const eRoundPot = el('roundPot');
+  const eAllRev = el('allRevealed');
+  const strikesA = el('strikesA').children;
+  const strikesB = el('strikesB').children;
+  const scoreA = el('scoreA');
+  const scoreB = el('scoreB');
+  const nameA = el('nameA');
+  const nameB = el('nameB');
+  const sndReveal = el('sndReveal');
+  const sndStrike = el('sndStrike');
+  const sndClap = el('sndClap');
 
+  // Sounds
+  let muted=false;
+  function playSound(a){ if(!muted){ try{ a.currentTime=0; a.play(); }catch(e){} } }
+
+  function setActivePanel(){
+    el('teamA').classList.toggle('active', activeTeam==='A');
+    el('teamB').classList.toggle('active', activeTeam==='B');
+  }
+
+  function updateTeamUI(){
+    nameA.value = team.A.name; nameB.value = team.B.name;
+    scoreA.textContent = team.A.score; scoreB.textContent = team.B.score;
+    [...strikesA].forEach((x,i)=>x.classList.toggle('on', team.A.strikes>i));
+    [...strikesB].forEach((x,i)=>x.classList.toggle('on', team.B.strikes>i));
+    setActivePanel();
+  }
+
+  function currentQ(){ return questions[qIndex] || {prompt:'—', answers:[]}; }
+
+  function drawBoard(){
+    const curr = currentQ();
+    qtext.textContent = curr.prompt || '— لا يوجد سؤال —';
+    qsmall.textContent = `السؤال ${qIndex+1} / ${questions.length}`;
+    answersWrap.innerHTML='';
+    const list = curr.answers.slice(0,8);
+    list.length = 8; // pad
+    let total = 0;
+    (list).forEach((ans,i)=>{
+      const div = document.createElement('button');
+      div.className='tile';
+      div.innerHTML = `
+        <div class="bgdots">${'<span></span>'.repeat(84)}</div>
+        <div class="inner">
+          <div class="idx">${i+1}</div>
+          <div class="bar"></div>
+        </div>`;
+    
+      const revealedNow = !!revealed[i];
+      if(revealedNow && ans){
+        div.innerHTML = `
+          <div class="inner reveal">
+            <div class="idx" style="color:#0b2f63">${i+1}</div>
+            <div class="ans">${escapeHtml(ans.text)}</div>
+            <div class="pts">${ans.points|0}</div>
+          </div>`;
+      }
+      div.addEventListener('click',()=>{
+        if(revealed[i]) return;
+        revealed[i]=true;
+        if(ans){ total += ans.points|0; }
+        playSound(sndReveal);
+        render();
+      });
+      answersWrap.appendChild(div);
+      if(revealedNow && ans){ total += ans.points|0; }
+    });
+    roundPot = total * multiplier;
+    eRoundPot.textContent = roundPot;
+    const allRev = curr.answers.slice(0,8).every((_,i)=>revealed[i]);
+    eAllRev.textContent = allRev ? 'نعم' : 'لا';
+  }
+
+  function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+
+  function render(){ updateTeamUI(); drawBoard(); }
+
+  // Controls
+  el('switchBtn').onclick = ()=>{ activeTeam = activeTeam==='A'?'B':'A'; setActivePanel(); };
+  el('strikeBtn').onclick = ()=>{
+    playSound(sndStrike);
+    const t = team[activeTeam]; t.strikes = Math.min(3, t.strikes+1); updateTeamUI(); };
+  el('stealBtn').onclick = ()=>{ stealMode = !stealMode; alert(stealMode? 'وضع السرقة: فعّل. اسأل الفريق الآخر إجابة واحدة لسرقة الرصيد.' : 'وضع السرقة: أُوقف.'); };
+  el('awardCurrent').onclick = ()=>{ team[activeTeam].score += roundPot; finishRound(); };
+  el('awardOther').onclick = ()=>{ team[activeTeam==='A'?'B':'A'].score += roundPot; finishRound(); };
+  function finishRound(){ playSound(sndClap); team.A.strikes=0; team.B.strikes=0; revealed={}; stealMode=false; render(); }
+
+  el('nextBtn').onclick = ()=>{ revealed={}; team.A.strikes=0; team.B.strikes=0; stealMode=false; qIndex=(qIndex+1)%questions.length; render(); };
+  el('resetBtn').onclick = ()=>{ qIndex=0; revealed={}; multiplier=1; el('mult').value='1'; team.A.score=0; team.B.score=0; team.A.strikes=0; team.B.strikes=0; activeTeam='A'; render(); };
+
+  el('mult').onchange = (e)=>{ multiplier = parseInt(e.target.value||'1'); render(); };
+
+  nameA.oninput = (e)=>{ team.A.name = e.target.value; };
+  nameB.oninput = (e)=>{ team.B.name = e.target.value; };
+
+  // Mute
+  function toggleMute(){ muted = !muted; el('muteBtn').textContent = muted? '🔇 صامت' : '🔊 صوت'; }
+  el('muteBtn').onclick = toggleMute;
+
+  // init
+  render();
 </script>
 </body>
 </html>
